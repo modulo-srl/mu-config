@@ -1,4 +1,4 @@
-module github.com/modulo-srl/mu-settings/json2struct
+module github.com/modulo-srl/mu-config/json2struct
 
 go 1.15
 

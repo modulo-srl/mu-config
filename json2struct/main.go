@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/modulo-srl/mu-settings/json2struct/encoder"
+	"github.com/modulo-srl/mu-config/json2struct/encoder"
 )
 
 const version = "json2struct 1.0"

@@ -1,0 +1,20 @@
+package test
+
+func initTestData() TestData {
+	var s TestData
+
+	s.Basic_Types.ParamString = "ParamValue \n \"test\""
+	s.Basic_Types.ParamBool = true
+	s.Basic_Types.ParamInt = 12
+	s.Basic_Types.ParamFloat = 1.234
+
+	s.Array_Types.ArrayInt = []int{1, 2, 3}
+	s.Array_Types.ArrayBool = []bool{true, false, true}
+	s.Array_Types.ArrayFloat = []float64{1.0, 2.0, 3.0}
+	s.Array_Types.ArrayString = []string{"a", "b", "c"}
+	s.Array_Types.ArrayMixed = []string{"a", "1", "2.0"}
+
+	return s
+}
+
+

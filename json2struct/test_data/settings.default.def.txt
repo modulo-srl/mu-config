@@ -1,0 +1,20 @@
+package test
+
+type TestData struct {
+	Basic_Types struct {
+		ParamString	string
+		ParamBool	bool
+		ParamInt	int
+		ParamFloat	float64
+	}	`json:"Basic-Types"`
+
+	Array_Types struct {
+		ArrayInt	[]int
+		ArrayBool	[]bool
+		ArrayFloat	[]float64
+		ArrayString	[]string
+		ArrayMixed	[]string
+	}	`json:"Array-Types"`
+}
+
+

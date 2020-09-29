@@ -11,7 +11,7 @@
 ```go
 package config
 
-// Depends: go get github.com/modulo-srl/mu-config/json2struct
+// Depends: go get -u github.com/modulo-srl/mu-config/json2struct
 //go:generate json2struct -declare -warn -struct=configData -pkg=config -out=structs.go ../bin/default.json
 //go:generate json2struct -values  -warn -struct=configData -pkg=config -out=defaults.go ../bin/default.json
 

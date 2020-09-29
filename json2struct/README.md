@@ -4,7 +4,7 @@ Converts JSON files to Go structs and initializers functions.
 * supports JSON with //comments
 
 ## Installation
-`go install github.com/modulo-srl/mu-config/json2struct`
+`go get -u github.com/modulo-srl/mu-config/json2struct`
 
 ## Example usage with Go-generate
 Generate structs declarations:

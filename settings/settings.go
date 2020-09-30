@@ -7,11 +7,11 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"regexp"
 	"sync"
 	"time"
 
 	"github.com/mitchellh/go-homedir"
+	"github.com/modulo-srl/mu-config/jsonc"
 )
 
 // Settings - struttura oggetto direttamente utilizzabile.
@@ -81,7 +81,9 @@ func (set *Settings) LoadSettings() error {
 		return err
 	}
 
-	fileContent = stripComments(fileContent)
+	if filepath.Ext(set.filename) == ".jsonc" {
+		fileContent = jsonc.ToJSON(fileContent)
+	}
 
 	data, isMap := set.Data.(map[string]interface{})
 	if isMap {
@@ -171,11 +173,4 @@ func New(filename string, data interface{}, verbose bool) (*Settings, error) {
 	}
 
 	return &ctrl, nil
-}
-
-// Remove all comments using pattern " //.......<EOL>"
-func stripComments(stream []byte) []byte {
-	reg := regexp.MustCompile(`\s//.*`)
-	res := reg.ReplaceAll(stream, nil)
-	return res
 }

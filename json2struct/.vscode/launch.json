@@ -9,10 +9,11 @@
             "type": "go",
             "request": "launch",
             "mode": "auto",
-            "program": "${fileDirname}",
+            //"program": "${fileDirname}",
+            "program": "${workspaceFolder}",
             "env": {},
-            //"args": ["-declare", "-values", "-f", "asd", "test/settings.default.json"]
-            //"args": ["-values", "test/settings.default.json"]
+            "args": []
+            //"args": ["-declare", "-pkg", "test", "-struct", "testData", "test_data/settings.default.jsonc"]
         }
     ]
 }

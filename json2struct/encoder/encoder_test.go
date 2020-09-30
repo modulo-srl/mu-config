@@ -19,7 +19,7 @@ func TestDefine(t *testing.T) {
 		return
 	}
 
-	out, err := JSONToStruct(testDataPath+"settings.default.json", "testData", false)
+	out, err := JSONToStruct(testDataPath+"settings.default.jsonc", "testData", false)
 	if err != nil {
 		t.Error(err)
 		return
@@ -45,7 +45,7 @@ func TestValues(t *testing.T) {
 		return
 	}
 
-	out, err := JSONToValues(testDataPath+"settings.default.json", "initTestData", "testData", false)
+	out, err := JSONToValues(testDataPath+"settings.default.jsonc", "initTestData", "testData", false)
 	if err != nil {
 		t.Error(err)
 		return

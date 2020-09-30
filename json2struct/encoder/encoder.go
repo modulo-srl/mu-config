@@ -7,12 +7,14 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
 	"unicode"
 
+	"github.com/modulo-srl/mu-config/jsonc"
 	"gitlab.com/c0b/go-ordered-json"
 )
 
@@ -69,7 +71,10 @@ func jsonToMap(filename string) (*ordered.OrderedMap, error) {
 		return nil, errors.New("JSON does not starts with '{'")
 	}
 
-	raw = stripComments(raw)
+	if filepath.Ext(filename) == ".jsonc" {
+		//raw = stripComments(raw)
+		raw = jsonc.ToJSON(raw)
+	}
 
 	m := ordered.NewOrderedMap()
 	//m := make(map[string]interface{})

@@ -1,6 +1,7 @@
 {
-    // Default settings example.
-    // Comments are allowed :)
+    /*
+     * Default settings example.
+     */
 
     "Basic-Types" : {
         "ParamString": "ParamValue \n \"test\"",  // string value
@@ -12,6 +13,7 @@
     },
 
     "Array-Types": {
+        // Array type will be auto discovered.
         "ArrayInt": [ 1, 2, 3 ],
         "ArrayBool": [ true, false, true ],
         "ArrayFloat": [ 1.0, 2.0, 3.0 ],

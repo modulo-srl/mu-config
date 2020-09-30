@@ -14,48 +14,19 @@ import (
 	"github.com/modulo-srl/mu-config/jsonc"
 )
 
-// Settings - struttura oggetto direttamente utilizzabile.
-type Settings struct {
-	verbose  bool
-	filename string
-
-	lock      sync.Mutex
-	timerSave *time.Timer
-
-	Data interface{} // Punta ad una struttura dati custom
-}
-
-func (set *Settings) init(filename string, data interface{}, verbose bool) error {
-	switch {
-	case filename[0] == '~':
-		homeDir, err := homedir.Dir()
-		if err != nil {
-			return errors.New("Can't find homedir")
-		}
-
-		set.filename = homeDir + filename[1:]
-
-	case filename[0] != '/':
-		// Se il path è relativo allora prefissa con il path dell'eseguibile
-		ex, err := os.Executable()
-		if err != nil {
-			return err
-		}
-		set.filename = filepath.Dir(ex) + "/" + filename
-
-	default:
-		set.filename = filename
+// New - restituisce un gestore inizializzato per dati custom
+// - filename: se il path è relativo, allora lo cerca nel medesimo path dell'eseguibile. Accetta eventualmente "~/...".
+// Se esiste un file con estensione ".jsonc" preferisce quello.
+// - data: passare il puntatore ad una struct contenente i dati
+// da caricare e salvare.
+func New(filename string, data interface{}, verbose bool) (*Settings, error) {
+	ctrl := Settings{}
+	err := ctrl.init(filename, data, verbose)
+	if err != nil {
+		return nil, err
 	}
 
-	set.Data = data
-
-	set.verbose = verbose
-
-	if verbose {
-		log.Println("Settings filename", set.filename)
-	}
-
-	return nil
+	return &ctrl, nil
 }
 
 // GetFilename returns full path filename
@@ -160,17 +131,59 @@ func (set *Settings) SaveSettingsDebounce(saveAfter time.Duration) {
 	}
 }
 
-// New - restituisce un gestore inizializzato per dati custom
-// - filename: se vuoto viene automaticamente settato a settings.json
-// nel medesimo path dell'eseguibile. Accetta eventualmente "~/...".
-// - data: passare il puntatore ad una struct contenente i dati
-// da caricare e salvare.
-func New(filename string, data interface{}, verbose bool) (*Settings, error) {
-	ctrl := Settings{}
-	err := ctrl.init(filename, data, verbose)
-	if err != nil {
-		return nil, err
+// Settings - struttura oggetto direttamente utilizzabile.
+type Settings struct {
+	verbose  bool
+	filename string
+
+	lock      sync.Mutex
+	timerSave *time.Timer
+
+	Data interface{} // Punta ad una struttura dati custom
+}
+
+func (set *Settings) init(filename string, data interface{}, verbose bool) error {
+	switch {
+	case filename[0] == '~':
+		homeDir, err := homedir.Dir()
+		if err != nil {
+			return errors.New("Can't find homedir")
+		}
+
+		set.filename = homeDir + filename[1:]
+
+	case filename[0] != '/':
+		// Se il path è relativo allora prefissa con il path dell'eseguibile
+		ex, err := os.Executable()
+		if err != nil {
+			return err
+		}
+		set.filename = filepath.Dir(ex) + "/" + filename
+
+	default:
+		set.filename = filename
 	}
 
-	return &ctrl, nil
+	if filepath.Ext(set.filename) == ".json" && fileExists(set.filename+"c") {
+		// filename.jsonc exists, so use it instead.
+		set.filename += "c"
+	}
+
+	set.Data = data
+
+	set.verbose = verbose
+
+	if verbose {
+		log.Println("Settings filename", set.filename)
+	}
+
+	return nil
+}
+
+func fileExists(filename string) bool {
+	info, err := os.Stat(filename)
+	if os.IsNotExist(err) {
+		return false
+	}
+	return !info.IsDir()
 }

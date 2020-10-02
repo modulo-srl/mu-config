@@ -8,9 +8,9 @@ import (
 func TestDiff(t *testing.T) {
 	var err error
 
-	json1 := `{ "a": "1", "b": { "c": 2, "d": true,  "e": 2.0, "f": { "g": { "h": 100, "i": 102 }, "j": true, "k": { "l": 1 } } } }`
-	json2 := `{ "a": "",  "b": { "c": 2, "d": false, "f": { "g": { "h": 101 } } } }`
-	jsonExpected := `{"a":"","b":{"d":false,"f":{"g":{"h":101}}}}`
+	json1 := `{ "a": "1", "b": { "c": 2, "d": true,  "e": 2.0, "f": { "g": { "h": 100, "i": 102 }, "j": true, "k": { "l": 1 }, "m": { "n": 1 } } }, "o": [1, 2, 3], "p": [1, 2, 3] }`
+	json2 := `{ "a": "",  "b": { "c": 2, "d": false, "f": { "g": { "h": 101 }, "m": {"n": 1} } }, "o": [1, 2, 3], "p": [1, 1, 1] }`
+	jsonExpected := `{"a":"","b":{"d":false,"f":{"g":{"h":101}}},"p":[1,1,1]}`
 
 	var map1, map2 map[string]interface{}
 

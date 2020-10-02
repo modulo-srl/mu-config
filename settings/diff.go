@@ -74,7 +74,12 @@ func diffFields(field1, field2 interface{}) interface{} {
 			return nil
 		}
 
-		return diffMaps(m1, m2)
+		dm := diffMaps(m1, m2)
+		if len(dm) == 0 {
+			return nil
+		}
+
+		return dm
 	}
 
 	// Array
@@ -84,7 +89,11 @@ func diffFields(field1, field2 interface{}) interface{} {
 			return nil
 		}
 
-		return diffArrays(a1, a2)
+		i := diffArrays(a1, a2)
+		if i == nil {
+			return nil // evita il cast a slice vuoto
+		}
+		return i
 	}
 
 	// Boolean

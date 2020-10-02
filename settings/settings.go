@@ -17,11 +17,12 @@ import (
 // New - restituisce un gestore inizializzato per dati custom
 // - filename: se il path è relativo, allora lo cerca nel medesimo path dell'eseguibile. Accetta eventualmente "~/...".
 // Se esiste un file con estensione ".jsonc" preferisce quello.
-// - data: passare il puntatore ad una struct contenente i dati
-// da caricare e salvare.
-func New(filename string, data interface{}, verbose bool) (*Settings, error) {
+// - data: passare il puntatore ad una struct contenente i dati da caricare e salvare.
+// - defaultData: passare una struttura dati popolata con i dati di default,
+// che non verranno mai salvati nel file di configurazione.
+func New(filename string, data, defaultData interface{}, verbose bool) (*Settings, error) {
 	ctrl := Settings{}
-	err := ctrl.init(filename, data, verbose)
+	err := ctrl.init(filename, data, defaultData, verbose)
 	if err != nil {
 		return nil, err
 	}
@@ -56,9 +57,13 @@ func (set *Settings) LoadSettings() error {
 		fileContent = jsonc.ToJSON(fileContent)
 	}
 
+	// Reimposta i dati di default, evitando riferimenti di qualsiasi tipo.
+	cloneData(set.defaultData, set.Data)
+
 	data, isMap := set.Data.(map[string]interface{})
 	if isMap {
-		// mappa che contiene strutture; deserializza ogni singola struttura, anche se in modo inefficiente
+		// I settings sono in una mappa generica:
+		// è costretto a deserializzare ogni singola struttura, anche se in modo inefficiente.
 		var temp map[string]interface{}
 		err = json.Unmarshal([]byte(fileContent), &temp)
 		if err != nil {
@@ -108,7 +113,12 @@ func (set *Settings) SaveSettings() error {
 	}
 	defer f.Close()
 
-	b, err := json.MarshalIndent(set.Data, "", "\t")
+	diffMap, err := DiffMaps(set.defaultData, set.Data)
+	if err != nil {
+		return err
+	}
+
+	b, err := json.MarshalIndent(diffMap, "", "\t")
 	if err != nil {
 		return err
 	}
@@ -139,10 +149,11 @@ type Settings struct {
 	lock      sync.Mutex
 	timerSave *time.Timer
 
-	Data interface{} // Punta ad una struttura dati custom
+	Data        interface{} // Punta ad una struttura dati custom
+	defaultData interface{} // Contiene i dati di default
 }
 
-func (set *Settings) init(filename string, data interface{}, verbose bool) error {
+func (set *Settings) init(filename string, data, defaultData interface{}, verbose bool) error {
 	switch {
 	case filename[0] == '~':
 		homeDir, err := homedir.Dir()
@@ -170,6 +181,7 @@ func (set *Settings) init(filename string, data interface{}, verbose bool) error
 	}
 
 	set.Data = data
+	set.defaultData = defaultData
 
 	set.verbose = verbose
 

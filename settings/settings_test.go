@@ -1,9 +1,11 @@
 package settings
 
 import (
-	"fmt"
+	"os"
 	"testing"
 )
+
+const testSettingsFilename = "settings_test.json"
 
 type testSettingsData struct {
 	Foo int
@@ -11,13 +13,16 @@ type testSettingsData struct {
 }
 
 var testData testSettingsData
+var testDefaultData testSettingsData
+
 var testSet *Settings
 
 func initTests(t *testing.T) error {
 	testData = testSettingsData{}
+	testDefaultData = testSettingsData{Foo: 1, Bar: "bar"}
 
 	var err error
-	testSet, err = New("settings_test.json", &testData, false)
+	testSet, err = New(testSettingsFilename, &testData, testDefaultData, false)
 
 	if err != nil {
 		if t != nil {
@@ -30,8 +35,6 @@ func initTests(t *testing.T) error {
 }
 
 func TestSave(t *testing.T) {
-	fmt.Println("Save TEST")
-
 	err := initTests(t)
 	if err != nil {
 		return
@@ -44,8 +47,6 @@ func TestSave(t *testing.T) {
 }
 
 func TestLoad(t *testing.T) {
-	fmt.Println("Load TEST")
-
 	err := initTests(t)
 	if err != nil {
 		return
@@ -58,10 +59,6 @@ func TestLoad(t *testing.T) {
 }
 
 func TestLoadSave(t *testing.T) {
-	if t != nil {
-		fmt.Println("Save and reload TEST")
-	}
-
 	err := initTests(t)
 	if err != nil {
 		return
@@ -96,6 +93,23 @@ func TestLoadSave(t *testing.T) {
 			t.Error("Loaded data mismatch: ", testData2, testData)
 		}
 		return
+	}
+}
+
+func TestDefault(t *testing.T) {
+	err := initTests(t)
+	if err != nil {
+		return
+	}
+
+	testData = testSettingsData{Foo: 1, Bar: "bar"}
+	testSet.SaveSettings()
+
+	fi, _ := os.Stat(testSettingsFilename)
+	size := fi.Size()
+
+	if size != 2 {
+		t.Error(size)
 	}
 }
 

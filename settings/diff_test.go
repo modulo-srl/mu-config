@@ -8,9 +8,9 @@ import (
 func TestDiff(t *testing.T) {
 	var err error
 
-	json1 := `{ "a": "1", "b": { "c": 2, "d": true,  "e": 2.0, "f": { "g": { "h": 100, "i": 102 }, "j": true, "k": { "l": 1 }, "m": { "n": 1 } } }, "o": [1, 2, 3], "p": [1, 2, 3] }`
-	json2 := `{ "a": "",  "b": { "c": 2, "d": false, "f": { "g": { "h": 101 }, "m": {"n": 1} } }, "o": [1, 2, 3], "p": [1, 1, 1] }`
-	jsonExpected := `{"a":"","b":{"d":false,"f":{"g":{"h":101}}},"p":[1,1,1]}`
+	json1 := `{ "a": "1", "b": { "c": 2, "d": true,  "e": 2.0, "f": { "g": { "h": 100.0, "i": 102 }, "j": true, "k": { "l": 1 }, "m": { "n": 1 } } }, "o": [1, 2, 3], "p": [1, 2, 3] }`
+	json2 := `{ "a": "",  "b": { "c": 2, "d": false, "f": { "g": { "h": 101.1 }, "m": {"n": 1} } }, "o": [1, 2, 3], "p": [1, 1, 1] }`
+	jsonExpected := `{"a":"","b":{"d":false,"f":{"g":{"h":101.1}}},"p":[1,1,1]}`
 
 	var map1, map2 map[string]interface{}
 
@@ -26,7 +26,10 @@ func TestDiff(t *testing.T) {
 
 	var mapDiff map[string]interface{}
 
-	mapDiff = diffMaps(map1, map2)
+	mapDiff, err = DiffMaps(map1, map2)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	j, err := json.Marshal(&mapDiff)
 	if err != nil {

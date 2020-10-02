@@ -1,17 +1,23 @@
 package settings
 
-import "encoding/json"
+import (
+	"encoding/json"
+
+	"gitlab.com/c0b/go-ordered-json"
+)
 
 // DiffMaps returns a map as difference mapChild - mapParent, returning only fields with different values.
 // Fields with the same name on two maps must to be of the same type.
 func DiffMaps(mapParent, mapChild interface{}) (diffedMap map[string]interface{}, err error) {
-	marshUnmarsh := func(m interface{}) (out map[string]interface{}, err error) {
+	marshUnmarsh := func(m interface{}) (out *ordered.OrderedMap, err error) {
 		b, err := json.Marshal(&m)
 		if err != nil {
 			return nil, err
 		}
 
-		err = json.Unmarshal(b, &out)
+		out = ordered.NewOrderedMap()
+
+		err = json.Unmarshal(b, out)
 		if err != nil {
 			return nil, err
 		}
@@ -19,7 +25,7 @@ func DiffMaps(mapParent, mapChild interface{}) (diffedMap map[string]interface{}
 		return
 	}
 
-	var m1, m2 map[string]interface{}
+	var m1, m2 *ordered.OrderedMap
 
 	m1, err = marshUnmarsh(&mapParent)
 	if err != nil {
@@ -33,11 +39,19 @@ func DiffMaps(mapParent, mapChild interface{}) (diffedMap map[string]interface{}
 	return diffMaps(m1, m2), nil
 }
 
-func diffMaps(mapParent, mapChild map[string]interface{}) map[string]interface{} {
+func diffMaps(mapParent, mapChild *ordered.OrderedMap) map[string]interface{} {
 	mapOut := map[string]interface{}{}
 
-	for k, v1 := range mapParent {
-		v2, ok := mapChild[k]
+	iter := mapParent.EntriesIter()
+	for {
+		pair, ok := iter()
+		if !ok {
+			break
+		}
+		k := pair.Key
+		v1 := pair.Value
+
+		v2, ok := mapChild.GetValue(k)
 		if !ok {
 			continue
 		}
@@ -68,8 +82,8 @@ func diffArrays(arr1, arr2 []interface{}) []interface{} {
 
 func diffFields(field1, field2 interface{}) interface{} {
 	// Map
-	if m1, ok := field1.(map[string]interface{}); ok {
-		m2, ok := field2.(map[string]interface{})
+	if m1, ok := field1.(*ordered.OrderedMap); ok {
+		m2, ok := field2.(*ordered.OrderedMap)
 		if !ok || m2 == nil {
 			return nil
 		}
@@ -127,6 +141,15 @@ func diffFields(field1, field2 interface{}) interface{} {
 	if f1, ok := field1.(float32); ok {
 		f2, ok := field2.(float32)
 		if !ok || f1 == f2 {
+			return nil
+		}
+		return field2
+	}
+
+	// JSON Number
+	if b1, ok := field1.(json.Number); ok {
+		b2, ok := field2.(json.Number)
+		if !ok || b1 == b2 {
 			return nil
 		}
 		return field2

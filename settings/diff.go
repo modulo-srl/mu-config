@@ -8,7 +8,8 @@ import (
 
 // DiffMaps returns a map as difference mapChild - mapParent, returning only fields with different values.
 // Fields with the same name on two maps must to be of the same type.
-func DiffMaps(mapParent, mapChild interface{}) (diffedMap map[string]interface{}, err error) {
+// Uses an ordered map in order to mantain the same order of the original fields.
+func DiffMaps(mapParent, mapChild interface{}) (diffedMap *ordered.OrderedMap, err error) {
 	marshUnmarsh := func(m interface{}) (out *ordered.OrderedMap, err error) {
 		b, err := json.Marshal(&m)
 		if err != nil {
@@ -39,8 +40,8 @@ func DiffMaps(mapParent, mapChild interface{}) (diffedMap map[string]interface{}
 	return diffMaps(m1, m2), nil
 }
 
-func diffMaps(mapParent, mapChild *ordered.OrderedMap) map[string]interface{} {
-	mapOut := map[string]interface{}{}
+func diffMaps(mapParent, mapChild *ordered.OrderedMap) *ordered.OrderedMap {
+	mapOut := ordered.NewOrderedMap()
 
 	iter := mapParent.EntriesIter()
 	for {
@@ -58,7 +59,7 @@ func diffMaps(mapParent, mapChild *ordered.OrderedMap) map[string]interface{} {
 
 		vd := diffFields(v1, v2)
 		if vd != nil {
-			mapOut[k] = vd
+			mapOut.Set(k, vd)
 		}
 	}
 
@@ -89,7 +90,10 @@ func diffFields(field1, field2 interface{}) interface{} {
 		}
 
 		dm := diffMaps(m1, m2)
-		if len(dm) == 0 {
+		i := dm.EntriesIter()
+		_, ok = i()
+		if !ok {
+			// empty map
 			return nil
 		}
 

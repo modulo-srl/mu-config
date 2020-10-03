@@ -1,7 +1,8 @@
 package settings
 
 import (
-	"os"
+	"io/ioutil"
+	"strings"
 	"testing"
 )
 
@@ -97,6 +98,11 @@ func TestLoadSave(t *testing.T) {
 }
 
 func TestDefault(t *testing.T) {
+	readfile := func() string {
+		content, _ := ioutil.ReadFile(testSettingsFilename)
+		return string(content)
+	}
+
 	err := initTests(t)
 	if err != nil {
 		return
@@ -105,11 +111,19 @@ func TestDefault(t *testing.T) {
 	testData = testSettingsData{Foo: 1, Bar: "bar"}
 	testSet.SaveSettings()
 
-	fi, _ := os.Stat(testSettingsFilename)
-	size := fi.Size()
+	content := readfile()
+	if content != "{}" {
+		t.Error("Mismatch 1", content)
+	}
 
-	if size != 2 {
-		t.Error(size)
+	testData = testSettingsData{Foo: 2, Bar: "bar2"}
+	testSet.SaveSettings()
+
+	content = strings.ReplaceAll(readfile(), " ", "")
+	content = strings.ReplaceAll(content, "\n", "")
+	content = strings.ReplaceAll(content, "\t", "")
+	if content != `{"Foo":2,"Bar":"bar2"}` {
+		t.Error("Mismatch 2", content)
 	}
 }
 

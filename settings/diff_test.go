@@ -24,14 +24,13 @@ func TestDiff(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var mapDiff map[string]interface{}
-
-	mapDiff, err = DiffMaps(map1, map2)
+	mapDiff, err := DiffMaps(map1, map2)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	j, err := json.Marshal(&mapDiff)
+	//j, err := json.Marshal(&mapDiff)
+	j, err := mapDiff.MarshalJSON()
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -35,8 +35,9 @@ func (set *Settings) GetFilename() string {
 	return set.filename
 }
 
-// LoadSettings - carica/ricarica le impostazioni
-func (set *Settings) LoadSettings() error {
+// LoadSettings - carica/ricarica le impostazioni.
+// settingsFileMustExists: true per fallire se il file delle impostazioni non viene trovato.
+func (set *Settings) LoadSettings(settingsFileMustExists bool) error {
 	if set.Data == nil {
 		return errors.New("settings data struct not set")
 	}
@@ -48,6 +49,16 @@ func (set *Settings) LoadSettings() error {
 		log.Println("Load settings")
 	}
 
+	// Reimposta i dati di default, evitando riferimenti di qualsiasi tipo.
+	cloneData(set.defaultData, set.Data)
+
+	if !settingsFileMustExists && !fileExists(set.filename) {
+		if set.verbose {
+			log.Printf("Settings file \"%s\" not found. Using default settings\n", set.filename)
+		}
+		return nil
+	}
+
 	fileContent, err := ioutil.ReadFile(set.filename)
 	if err != nil {
 		return err
@@ -56,9 +67,6 @@ func (set *Settings) LoadSettings() error {
 	if filepath.Ext(set.filename) == ".jsonc" {
 		fileContent = jsonc.ToJSON(fileContent)
 	}
-
-	// Reimposta i dati di default, evitando riferimenti di qualsiasi tipo.
-	cloneData(set.defaultData, set.Data)
 
 	data, isMap := set.Data.(map[string]interface{})
 	if isMap {

@@ -1,5 +1,3 @@
-package test
-
 type TestData struct {
 	Basic_Types struct {
 		ParamString	string

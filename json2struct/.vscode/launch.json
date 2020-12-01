@@ -12,8 +12,8 @@
             //"program": "${fileDirname}",
             "program": "${workspaceFolder}",
             "env": {},
-            "args": []
-            //"args": ["-declare", "-pkg", "test", "-struct", "testData", "test_data/settings.default.jsonc"]
+            //"args": []
+            "args": ["test_data/settings.default.jsonc"]
         }
     ]
 }

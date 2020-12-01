@@ -1,6 +1,7 @@
 package encoder
 
 import (
+	"encoding/hex"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -25,8 +26,6 @@ func TestDefine(t *testing.T) {
 		return
 	}
 
-	out = "package test\n\n" + out
-
 	if strings.TrimSpace(out) != strings.TrimSpace(compare) {
 		t.Error("Output and compare mismatch, see " + failFilename)
 		fmt.Println("********************* Compare: \n", compare)
@@ -45,20 +44,53 @@ func TestValues(t *testing.T) {
 		return
 	}
 
-	out, err := JSONToValues(testDataPath+"settings.default.jsonc", "initTestData", "testData", false)
+	// Serve lo stesso, dato che json2struct genera sempre e comunque la definizione della struttura.
+	out1, err := JSONToStruct(testDataPath+"settings.default.jsonc", "testData", false)
 	if err != nil {
 		t.Error(err)
 		return
 	}
 
-	out = "package test\n\n" + out
+	out2, err := JSONToValues(testDataPath+"settings.default.jsonc", "init", "testData", false)
+	if err != nil {
+		t.Error(err)
+		return
+	}
 
-	if strings.TrimSpace(out) != strings.TrimSpace(compare) {
+	if strings.TrimSpace(out1+out2) != strings.TrimSpace(compare) {
 		t.Error("Output and compare mismatch, see " + failFilename)
 		fmt.Println("********************* Compare: \n", compare)
-		fmt.Println("********************* Generated: \n", out)
+		fmt.Println("********************* Generated: \n", out1+out2)
 
-		WriteFile(failFilename, out)
+		WriteFile(failFilename, out1+out2)
+	}
+}
+
+func TestRaw(t *testing.T) {
+	raw, err := IncludeRaw(testDataPath+"settings.default.jsonc", "raw")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	raw = strings.TrimSpace(raw)
+	raw = raw[13 : len(raw)-1]
+	raw = strings.ReplaceAll(raw, `\x`, "")
+
+	rawB, err := hex.DecodeString(raw)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	compare, err := loadFile(t, testDataPath+"settings.default.jsonc")
+	if err != nil {
+		return
+	}
+
+	if string(rawB) != compare {
+		t.Error("Output and compare mismatch")
+		fmt.Println("********************* Compare: \n", compare)
+		fmt.Println("********************* Generated: \n", string(rawB))
 	}
 }
 

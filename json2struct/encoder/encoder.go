@@ -101,8 +101,9 @@ func mapToStruct(m *ordered.OrderedMap, rootStructName string, force64 bool) str
 // mapToValues converts map to struct values initialization.
 func mapToValues(m *ordered.OrderedMap, funcName, rootStructName string, force64 bool) string {
 	if funcName == "" {
-		funcName = "init" + strings.Title(rootStructName)
+		funcName = "init"
 	}
+	funcName += strings.Title(rootStructName)
 
 	rootStructName, _ = jsonToGoField(rootStructName)
 
@@ -345,4 +346,21 @@ func mapToValuesRecursive(m *ordered.OrderedMap, fullItemName string, depth int,
 	}
 
 	return out
+}
+
+func IncludeRaw(filename, constName string) (string, error) {
+	out := "const " + constName + " = \""
+
+	content, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return "", err
+	}
+
+	for _, c := range content {
+		out += fmt.Sprintf("\\x%02x", c)
+	}
+
+	out += "\"\n\n"
+
+	return out, nil
 }

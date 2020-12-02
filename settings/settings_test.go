@@ -53,7 +53,7 @@ func TestLoad(t *testing.T) {
 		return
 	}
 
-	err = testSet.LoadSettings()
+	err = testSet.LoadSettings(true)
 	if err != nil {
 		t.Error("Error loading settings:", err)
 	}
@@ -81,7 +81,7 @@ func TestLoadSave(t *testing.T) {
 	testData2 := testData
 	testData = testSettingsData{}
 
-	err = testSet.LoadSettings()
+	err = testSet.LoadSettings(true)
 	if err != nil {
 		if t != nil {
 			t.Error("Error loading settings:", err)
@@ -99,7 +99,7 @@ func TestLoadSave(t *testing.T) {
 
 func TestDefault(t *testing.T) {
 	readfile := func() string {
-		content, _ := ioutil.ReadFile(testSettingsFilename)
+		content, _ := ioutil.ReadFile(testSet.GetFilename())
 		return string(content)
 	}
 

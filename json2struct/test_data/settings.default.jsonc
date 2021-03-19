@@ -18,6 +18,11 @@
         "ArrayBool": [ true, false, true ],
         "ArrayFloat": [ 1.0, 2.0, 3.0 ],
         "ArrayString": [ "a", "b", "c" ],
-        "ArrayMixed": [ "a", 1, 2.0 ]  // will be converted to strings array
+        "ArrayMixed": [ "a", 1, 2.0 ],  // will be converted to strings array
+        
+        // Array with a single object will be converted to array of specified object type
+        "ArrayObjects": [ 
+           { "foo": "", "bar": 0 }
+        ]
     }
 }

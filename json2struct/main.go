@@ -9,7 +9,7 @@ import (
 	"github.com/modulo-srl/mu-config/json2struct/encoder"
 )
 
-const version = "json2struct 1.3"
+const version = "json2struct 1.4"
 
 func usage() {
 	println(version)

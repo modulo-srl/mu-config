@@ -91,9 +91,26 @@ func jsonToMap(filename string) (*ordered.OrderedMap, error) {
 	return m, nil
 }
 
+var arrayStructsItems *ordered.OrderedMap
+
 // mapToStruct converts map to (annidated) struct declaration.
 func mapToStruct(m *ordered.OrderedMap, rootStructName string, force64 bool) string {
+	arrayStructsItems = ordered.NewOrderedMap()
+
 	out := mapToStructRecursive(m, rootStructName, 0, force64) + "\n"
+
+	//for key, value := range arrayStructsItems {
+	iter := arrayStructsItems.EntriesIter()
+	for {
+		pair, ok := iter()
+		if !ok {
+			break
+		}
+		key := pair.Key
+		value := pair.Value
+
+		out += mapToStructRecursive(value.(*ordered.OrderedMap), key, 0, force64) + "\n"
+	}
 
 	return out
 }
@@ -169,43 +186,56 @@ func escapeString(s string) string {
 	return string(b)
 }
 
-func jsonValueToGoTypeValue(value interface{}, force64, forceAutoInt bool) (goType, goValue string) {
+func jsonValueToGoTypeValue(value interface{}, propName string, force64, forceAutoInt bool) (goType, goValue string, mapArrayItem *ordered.OrderedMap) {
 	valueType := reflect.TypeOf(value)
 
 	if valueType.String() == "*ordered.OrderedMap" {
-		return "omap", ""
+		goType = "omap"
+		return
 	}
 
 	switch valueType.Kind() {
 
 	//case reflect.Map:
-	//	return "map", ""
+	//  goType = "map"
+	//	return
 
 	case reflect.String:
 		if valueType.String() == "json.Number" {
 			// int, float
 			s := value.(json.Number).String()
-			return jsonNumberToGoType(s, force64), s
+
+			goType = jsonNumberToGoType(s, force64)
+			goValue = s
+			return
 		}
 
 		if forceAutoInt {
 			// check for int, float
 			t := jsonNumberToGoType(value.(string), force64)
 			if t != "" {
-				return t, value.(string)
+				goType = t
+				goValue = value.(string)
+				return
 			}
 		}
 
-		return "string", escapeString(value.(string))
+		goType = "string"
+		goValue = escapeString(value.(string))
+		return
 
 	case reflect.Bool:
-		return "bool", fmt.Sprintf("%v", value)
+		goType = "bool"
+		goValue = fmt.Sprintf("%v", value)
+		return
 
 	case reflect.Array:
 	case reflect.Slice:
 		arr := value.([]interface{})
 		if len(arr) == 0 {
-			return "[]string", "[]string{}"
+			goType = "[]string"
+			goValue = "[]string{}"
+			return
 		}
 
 		values := ""
@@ -215,15 +245,27 @@ func jsonValueToGoTypeValue(value interface{}, force64, forceAutoInt bool) (goTy
 		mixedTypes := false
 
 		for k, v := range value.([]interface{}) {
-			itemType, itemValue := jsonValueToGoTypeValue(v, force64, true)
+			itemType, itemValue, _ := jsonValueToGoTypeValue(v, "", force64, true)
+
+			if itemType == "omap" {
+				// Array of objects
+
+				// Delegate parsing of first object in order to define the first object struct
+				mapArrayItem = v.(*ordered.OrderedMap)
+
+				arrayType = propName + "Item" // array name + "Item"
+				break
+			}
+
 			if itemType != oldItemType && k > 0 {
 				switch {
-				// Mixed int and float, fallback to float
 				case oldItemType == "int" && (itemType == "float64" || itemType == "float32"):
 				case (oldItemType == "float64" || oldItemType == "float32") && itemType == "int":
+					// Mixed int and float, fallback to float
 					itemType = oldItemType
-				// Mixed types, fallback to string
+
 				default:
+					// Mixed int and float, fallback to float
 					mixedTypes = true
 				}
 			}
@@ -243,14 +285,18 @@ func jsonValueToGoTypeValue(value interface{}, force64, forceAutoInt bool) (goTy
 		}
 
 		if mixedTypes {
-			return "[]string", "[]string{" + valuesS + "}"
+			goType = "[]string"
+			goValue = "[]string{" + valuesS + "}"
+			return
 		} else {
-			return "[]" + arrayType, "[]" + arrayType + "{" + values + "}"
+			goType = "[]" + arrayType
+			goValue = "[]" + arrayType + "{" + values + "}"
+			return
 		}
 
 	}
 
-	return "", ""
+	return
 }
 
 func mapToStructRecursive(m *ordered.OrderedMap, rootName string, depth int, force64 bool) string {
@@ -280,7 +326,13 @@ func mapToStructRecursive(m *ordered.OrderedMap, rootName string, depth int, for
 		key := pair.Key
 		value := pair.Value
 
-		fieldType, _ := jsonValueToGoTypeValue(value, force64, false)
+		fieldName, fieldTag := jsonToGoField(key)
+
+		fieldType, _, mapItem := jsonValueToGoTypeValue(value, fieldName, force64, false)
+
+		if mapItem != nil {
+			arrayStructsItems.Set(key+"Item", mapItem)
+		}
 
 		if fieldType == "omap" {
 			if wroteField || wroteStruct {
@@ -294,7 +346,6 @@ func mapToStructRecursive(m *ordered.OrderedMap, rootName string, depth int, for
 			continue
 		}
 
-		fieldName, fieldTag := jsonToGoField(key)
 		if wroteStruct {
 			out += "\n"
 			wroteStruct = false
@@ -329,7 +380,7 @@ func mapToValuesRecursive(m *ordered.OrderedMap, fullItemName string, depth int,
 		value := pair.Value
 
 		fieldName, _ := jsonToGoField(key)
-		fieldType, fieldValue := jsonValueToGoTypeValue(value, force64, false)
+		fieldType, fieldValue, _ := jsonValueToGoTypeValue(value, fieldName, force64, false)
 
 		if fieldType == "omap" {
 			if wrote {

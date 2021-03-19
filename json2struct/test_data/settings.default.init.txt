@@ -12,7 +12,13 @@ type TestData struct {
 		ArrayFloat	[]float64
 		ArrayString	[]string
 		ArrayMixed	[]string
+		ArrayObjects	[]ArrayObjectsItem
 	}	`json:"Array-Types"`
+}
+
+type ArrayObjectsItem struct {
+	Foo	string	`json:"foo"`
+	Bar	int	`json:"bar"`
 }
 
 func initTestData() TestData {
@@ -28,6 +34,7 @@ func initTestData() TestData {
 	s.Array_Types.ArrayFloat = []float64{1.0, 2.0, 3.0}
 	s.Array_Types.ArrayString = []string{"a", "b", "c"}
 	s.Array_Types.ArrayMixed = []string{"a", "1", "2.0"}
+	s.Array_Types.ArrayObjects = []ArrayObjectsItem{}
 
 	return s
 }

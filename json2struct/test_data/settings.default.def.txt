@@ -12,7 +12,13 @@ type TestData struct {
 		ArrayFloat	[]float64
 		ArrayString	[]string
 		ArrayMixed	[]string
+		ArrayObjects	[]ArrayObjectsItem
 	}	`json:"Array-Types"`
+}
+
+type ArrayObjectsItem struct {
+	Foo	string	`json:"foo"`
+	Bar	int	`json:"bar"`
 }
 
 

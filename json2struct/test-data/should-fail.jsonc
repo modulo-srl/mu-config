@@ -1,0 +1,32 @@
+{
+	"array-empty": { 
+		"arr": []
+	},
+	
+	"array-wrong-numbers": {
+		"arr": [ 1, 1.0 ]
+	},
+	
+	"array-wrong-types1": {
+		"arr": [ 1, true, "foo", {} ]
+	},
+
+	"array-wrong-types2": {
+		"arr": [ "foo", {} ]
+	},
+
+	"array-wrong-types3": {
+		"arr": [ [], {} ]
+	},
+
+	"array-objects-collision": {
+		"arr": [
+			{ "foo": "bar" },
+			{ "foo": 1 }
+		]
+	},
+
+    "obj-empty" : {
+		"obj": {}
+	}
+}

@@ -13,7 +13,7 @@
             "program": "${workspaceFolder}",
             "env": {},
             //"args": []
-            "args": ["test_data/settings.default.jsonc"]
+            "args": ["-raw", "", "settings.default.jsonc"]
         }
     ]
 }

@@ -9,7 +9,7 @@ import (
 	"github.com/modulo-srl/mu-config/json2struct/encoder"
 )
 
-const version = "json2struct 1.4"
+const version = "json2struct 1.5"
 
 func usage() {
 	println(version)
@@ -17,11 +17,16 @@ func usage() {
 	flag.PrintDefaults()
 }
 
+func die(err error) {
+	fmt.Fprintf(os.Stderr, "Error: %s\n", err)
+	os.Exit(1)
+}
+
 func main() {
 	ver := flag.Bool("version", false, "Show tool version")
-	structName := flag.String("declare", "configData", "Struct declaration name")
-	funcValues := flag.String("values", "init", "Function name prefix (\"prefix<StructName>()\") that fills the struct with values (blank for none)")
-	constRaw := flag.String("raw", "raw", "Const name that contains original file content")
+	structName := flag.String("declare", "data", "Main struct name, and prefix for inner structs")
+	funcValues := flag.String("values", "default", "Function name prefix (\"prefix<StructName>()\") that returns the prefilled struct with values (blank for none)")
+	constRaw := flag.String("raw", "raw", "Const name that contains original file content (blank for none)")
 	pkg := flag.String("pkg", "config", "Package name (blank for none)")
 	f64 := flag.Bool("f64", false, "Force 64bit for integer and float")
 	warn := flag.Bool("warn", true, "Generate warning header")
@@ -53,16 +58,16 @@ func main() {
 		out += "package " + *pkg + "\n\n"
 	}
 
-	decoded, err := encoder.JSONToStruct(filename, *structName, *f64)
+	decoded, err := encoder.JSONToStructs(filename, *structName, *f64)
 	if err != nil {
-		panic(err)
+		die(err)
 	}
 	out += decoded
 
 	if *funcValues != "" {
 		decoded, err := encoder.JSONToValues(filename, *funcValues, *structName, *f64)
 		if err != nil {
-			panic(err)
+			die(err)
 		}
 		out += decoded
 	}
@@ -70,7 +75,7 @@ func main() {
 	if *constRaw != "" {
 		raw, err := encoder.IncludeRaw(filename, *constRaw)
 		if err != nil {
-			panic(err)
+			die(err)
 		}
 		out += raw
 	}
@@ -78,7 +83,7 @@ func main() {
 	if *outFile != "" {
 		err := encoder.WriteFile(*outFile, out)
 		if err != nil {
-			panic(err)
+			die(err)
 		}
 	} else {
 		fmt.Println(out)

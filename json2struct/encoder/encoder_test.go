@@ -7,67 +7,73 @@ import (
 	"os"
 	"strings"
 	"testing"
+
+	"gitlab.com/c0b/go-ordered-json"
 )
 
-const testDataPath = "../test_data/"
+const testDataPath = "../test-data/"
 
-func TestDefine(t *testing.T) {
-	failFilename := testDataPath + "generated_struct.fail.txt"
-	os.Remove(failFilename)
-
-	compare, err := loadFile(t, testDataPath+"settings.default.def.txt")
-	if err != nil {
-		return
-	}
-
-	out, err := JSONToStruct(testDataPath+"settings.default.jsonc", "testData", false)
+func TestInvalid(t *testing.T) {
+	m, err := jsonToMap(testDataPath + "should-fail.jsonc")
 	if err != nil {
 		t.Error(err)
 		return
 	}
 
+	iter := m.EntriesIter()
+	for {
+		pair, ok := iter()
+		if !ok {
+			break
+		}
+		key := pair.Key
+		value := pair.Value
+
+		fmt.Printf("Test %s ... ", key)
+
+		_, err := mapToStructs(value.(*ordered.OrderedMap), "test", false)
+		if err == nil {
+			fmt.Println("FAILED")
+			t.Fail()
+		} else {
+			fmt.Printf("OK (%s)\n", err.Error())
+		}
+	}
+}
+
+func TestOutput(t *testing.T) {
+	failFilename := testDataPath + "test-fail.txt"
+	os.Remove(failFilename)
+
+	compare, err := loadFile(t, testDataPath+"should-ok.out")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	out, err := JSONToStructs(testDataPath+"../example.jsonc", "test", false)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	s, err := JSONToValues(testDataPath+"../example.jsonc", "default", "test", false)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	out += s
+
 	if strings.TrimSpace(out) != strings.TrimSpace(compare) {
-		t.Error("Output and compare mismatch, see " + failFilename)
-		fmt.Println("********************* Compare: \n", compare)
-		fmt.Println("********************* Generated: \n", out)
+		t.Error("Output and compare mismatch. For current (failed) output, see " + failFilename)
+		//fmt.Println("********************* Compare: \n", compare)
+		//fmt.Println("********************* Generated: \n", out)
 
 		WriteFile(failFilename, out)
 	}
 }
 
-func TestValues(t *testing.T) {
-	failFilename := testDataPath + "generated_values.fail.txt"
-	os.Remove(failFilename)
-
-	compare, err := loadFile(t, testDataPath+"settings.default.init.txt")
-	if err != nil {
-		return
-	}
-
-	// Serve lo stesso, dato che json2struct genera sempre e comunque la definizione della struttura.
-	out1, err := JSONToStruct(testDataPath+"settings.default.jsonc", "testData", false)
-	if err != nil {
-		t.Error(err)
-		return
-	}
-
-	out2, err := JSONToValues(testDataPath+"settings.default.jsonc", "init", "testData", false)
-	if err != nil {
-		t.Error(err)
-		return
-	}
-
-	if strings.TrimSpace(out1+out2) != strings.TrimSpace(compare) {
-		t.Error("Output and compare mismatch, see " + failFilename)
-		fmt.Println("********************* Compare: \n", compare)
-		fmt.Println("********************* Generated: \n", out1+out2)
-
-		WriteFile(failFilename, out1+out2)
-	}
-}
-
 func TestRaw(t *testing.T) {
-	raw, err := IncludeRaw(testDataPath+"settings.default.jsonc", "raw")
+	raw, err := IncludeRaw(testDataPath+"../example.jsonc", "raw")
 	if err != nil {
 		t.Error(err)
 		return
@@ -82,7 +88,7 @@ func TestRaw(t *testing.T) {
 		return
 	}
 
-	compare, err := loadFile(t, testDataPath+"settings.default.jsonc")
+	compare, err := loadFile(t, testDataPath+"../example.jsonc")
 	if err != nil {
 		return
 	}

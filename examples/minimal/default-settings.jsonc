@@ -1,0 +1,28 @@
+{
+	/*
+	 * My program settings
+	 */
+
+	"Main" : {
+		// String
+		"ParamString": "ParamValue \n \"test\"",
+
+		// Boolean
+		"ParamBool": true,  
+
+		// Numeric
+		"ParamInt": 12,
+		"ParamFloat": 1.234
+	},
+
+	// My users
+    "Users": [
+        {
+            "name": "John",
+            "email": "john@email"
+        },
+        {
+            "name": "Smith"
+        }
+    ]
+}

@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path"
 	"path/filepath"
 	"sync"
 	"time"
@@ -168,16 +169,15 @@ func (set *Settings) init(filename string, data, defaultData interface{}, verbos
 		if err != nil {
 			return errors.New("Can't find homedir")
 		}
-
-		set.filename = homeDir + filename[1:]
+		set.filename = path.Join(homeDir, filename[1:])
 
 	case filename[0] != '/':
-		// Se il path è relativo allora prefissa con il path dell'eseguibile
-		ex, err := os.Executable()
+		// Se il path è relativo allora prefissa con la current working directory.
+		currDir, err := os.Getwd()
 		if err != nil {
 			return err
 		}
-		set.filename = filepath.Dir(ex) + "/" + filename
+		set.filename = path.Join(currDir, filename)
 
 	default:
 		set.filename = filename

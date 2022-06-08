@@ -1,0 +1,28 @@
+{
+	// go2jsonc_minimal.Main - Main configuration parameters.
+	"Main": {
+		// string
+		"ParamString": "ParamValue \n \"test\"",
+		// bool
+		"ParamBool": true,
+		// int
+		"ParamInt": 12,
+		// float64
+		"ParamFloat": 1.234
+	},
+	// go2jsonc_minimal.UserItem[] - Users list.
+	"Users": [
+		{
+			// string - User name.
+			"name": "John",
+			// string - User e-mail.
+			"email": "john@email"
+		},
+		{
+			// string - User name.
+			"name": "Smith",
+			// string - User e-mail.
+			"email": ""
+		}
+	]
+}

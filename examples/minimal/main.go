@@ -57,8 +57,8 @@ func main() {
 		panic(err)
 	}
 
-	// Carica override magari dei valori secret da systemd.
-	err = settings.LoadSystemdCredentials("mysettings", &cfg)
+	// Carica override di eventuali valori secret da systemd.
+	err = settings.LoadSystemdCredentials("mysettings.toml", &cfg)
 	if err != nil {
 		panic(err)
 	}

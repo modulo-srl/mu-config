@@ -24,7 +24,7 @@ func TestDiff(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	mapDiff, err := DiffMaps(map1, map2)
+	mapDiff, err := diff(map1, map2)
 	if err != nil {
 		t.Fatal(err)
 	}

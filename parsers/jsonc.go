@@ -1,8 +1,35 @@
-package jsonc
+package parsers
 
-// ToJSON returns JSON equivalent of JSON with comments
-func ToJSON(b []byte) []byte {
-	return translate(b)
+import (
+	"bytes"
+	"encoding/json"
+	"os"
+)
+
+func LoadJsoncFile(filename string, data interface{}) error {
+	bb, err := os.ReadFile(filename)
+	if err != nil {
+		return err
+	}
+
+	return LoadJsonc(bb, data)
+}
+
+func LoadJsonc(bb []byte, data interface{}) error {
+	// Converte da Jsonc a Json.
+	bb = translate(bb)
+
+	r := bytes.NewReader(bb)
+
+	d := json.NewDecoder(r)
+	d.DisallowUnknownFields()
+
+	err := d.Decode(data)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Original work: https://github.com/muhammadmuzzammil1998/jsonc/blob/master/translator.go
@@ -82,7 +109,7 @@ type commentData struct {
 	canEnd        bool
 	startted      bool
 	isSingleLined bool
-	endLine       int
+	//endLine       int
 }
 
 func (c *commentData) stop() {

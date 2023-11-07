@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 
 	"github.com/mitchellh/go-homedir"
-	"github.com/modulo-srl/mu-config/parsers"
+	"github.com/modulo-srl/mu-config/settings/parsers"
 )
 
 type ErrorFileNotFound struct {

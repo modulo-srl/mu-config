@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/modulo-srl/mu-config/parsers"
+	"github.com/modulo-srl/mu-config/settings/parsers"
 )
 
 type MySettings struct {

@@ -171,7 +171,7 @@ func diffFields(field1, field2 interface{}) interface{} {
 	return nil
 }
 
-func cloneData(from, to interface{}) error {
+/*func cloneData(from, to interface{}) error {
 	bout, err := json.Marshal(&from)
 	if err != nil {
 		return err
@@ -179,4 +179,4 @@ func cloneData(from, to interface{}) error {
 
 	err = json.Unmarshal(bout, &to)
 	return err
-}
+}*/

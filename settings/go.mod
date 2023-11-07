@@ -1,4 +1,4 @@
-module github.com/modulo-srl/mu-config
+module github.com/modulo-srl/mu-config/settings
 
 go 1.19
 

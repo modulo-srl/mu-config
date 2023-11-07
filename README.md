@@ -18,8 +18,9 @@ Libreria leggera per la gestione dei settings.
   i nomi variabili nelle struct di configurazione sono case insensitive.
 
 * L'utilizzo dei tag `json:".."`, `toml:".."`, `yaml:".."`
-  è sconsigliabile sia per la scomodità di doverli esprimere sempre tutti,
-  sia per questioni di mantenibilità nel caso di subentro di nuovi parser.
+  non è consentito, sia per la scomodità di doverli esprimere sempre tutti e
+  quindi per l'immantenibilità nel caso di subentro nuovi parser,
+  sia perchè l'exporter non li supporta.
 
 * I decoder sono configurati in modalità _strict_,
   ovvero ritornano errore nel caso di field presenti nei file di configurazione
@@ -31,8 +32,6 @@ Vedi `examples/`.
 
 ## TODO
 
-* go2yaml
-
-* go2toml
+* go2cfg yaml/toml
 
 * testare il caricamento con systemd

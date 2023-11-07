@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/modulo-srl/mu-config/settings"
+	muconfig "github.com/modulo-srl/mu-config/settings"
 )
 
 type MySettings struct {
@@ -46,19 +46,19 @@ func main() {
 	cfg := defaultSettings()
 
 	// Carica i settaggi da file jsonc.
-	err := settings.LoadFile("mysettings.jsonc", &cfg)
+	err := muconfig.LoadFile("mysettings.jsonc", &cfg)
 	if err != nil {
 		panic(err)
 	}
 
 	// Carica ulteriori settaggi in override da file yaml.
-	err = settings.LoadFile("mysettings.yaml", &cfg)
+	err = muconfig.LoadFile("mysettings.yaml", &cfg)
 	if err != nil {
 		panic(err)
 	}
 
 	// Carica override di eventuali valori secret da systemd.
-	err = settings.LoadSystemdCredentials("mysettings.toml", &cfg)
+	err = muconfig.LoadSystemdCredentials("mysettings.toml", &cfg)
 	if err != nil {
 		panic(err)
 	}
@@ -67,7 +67,7 @@ func main() {
 	cfg.Main.ParamInt = 99
 
 	// Salva i settaggi su file toml (ad esclusione dei valori di default)
-	err = settings.SaveFile("mysettings.toml", cfg, defaultSettings())
+	err = muconfig.SaveFile("mysettings.toml", cfg, defaultSettings())
 	if err != nil {
 		panic(err)
 	}

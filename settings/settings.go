@@ -63,18 +63,17 @@ func loadFile(filename string, cfg interface{}) error {
 	}
 
 	var err error
-	var data interface{}
 
 	// Parsa il file.
 	switch filepath.Ext(filename) {
 	case ".json":
-		err = parsers.LoadJsonFile(filename, &data)
+		err = parsers.LoadJsonFile(filename, &cfg)
 	case ".jsonc":
-		err = parsers.LoadJsoncFile(filename, &data)
+		err = parsers.LoadJsoncFile(filename, &cfg)
 	case ".yaml":
-		err = parsers.LoadYamlFile(filename, &data)
+		err = parsers.LoadYamlFile(filename, &cfg)
 	case ".toml":
-		err = parsers.LoadTomlFile(filename, &data)
+		err = parsers.LoadTomlFile(filename, &cfg)
 	}
 
 	if err != nil {

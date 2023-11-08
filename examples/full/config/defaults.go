@@ -1,6 +1,6 @@
 package config
 
-// Depends on: go install github.com/modulo-srl/mu-config/go2cfg
+// Depends on: go install github.com/modulo-srl/mu-config/go2cfg@latest
 //go:generate go2cfg -type=MySettings -out=defaults.jsonc
 
 import (

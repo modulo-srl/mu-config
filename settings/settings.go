@@ -1,203 +1,162 @@
 package settings
 
 import (
-	"encoding/json"
 	"errors"
-	"io/ioutil"
-	"log"
+	"fmt"
 	"os"
 	"path"
 	"path/filepath"
-	"sync"
-	"time"
 
 	"github.com/mitchellh/go-homedir"
-	"github.com/modulo-srl/mu-config/jsonc"
+	"github.com/modulo-srl/mu-config/settings/parsers"
 )
 
-// New - restituisce un gestore inizializzato per dati custom
-// - filename: se il path è relativo, allora lo cerca nel medesimo path dell'eseguibile. Accetta eventualmente "~/...".
-// Se esiste un file con estensione ".jsonc" preferisce quello.
-// - data: passare il puntatore ad una struct contenente i dati da caricare e salvare.
-// - defaultData: passare una struttura dati popolata con i dati di default,
-// che non verranno mai salvati nel file di configurazione.
-func New(filename string, data, defaultData interface{}, verbose bool) (*Settings, error) {
-	ctrl := Settings{}
-	err := ctrl.init(filename, data, defaultData, verbose)
-	if err != nil {
-		return nil, err
-	}
-
-	return &ctrl, nil
+type ErrorFileNotFound struct {
+	filename string
 }
 
-// GetFilename returns full path filename
-func (set *Settings) GetFilename() string {
-	return set.filename
+func (e *ErrorFileNotFound) Error() string {
+	return "file not found: " + e.filename
 }
 
-// LoadSettings - carica/ricarica le impostazioni.
-// settingsFileMustExists: true per fallire se il file delle impostazioni non viene trovato.
-func (set *Settings) LoadSettings(settingsFileMustExists bool) error {
-	if set.Data == nil {
-		return errors.New("settings data struct not set")
-	}
-
-	set.lock.Lock()
-	defer set.lock.Unlock()
-
-	if set.verbose {
-		log.Println("Load settings")
-	}
-
-	// Reimposta i dati di default, evitando riferimenti di qualsiasi tipo.
-	cloneData(set.defaultData, set.Data)
-
-	if !settingsFileMustExists && !fileExists(set.filename) {
-		if set.verbose {
-			log.Printf("Settings file \"%s\" not found. Using default settings\n", set.filename)
-		}
-		return nil
-	}
-
-	fileContent, err := ioutil.ReadFile(set.filename)
+// Carica la configurazione da file.
+//   - filename: se non ha percorso o lo ha relativo, sarà rispetto alla directory corrente;
+//     se ha percorso assoluto può anche iniziare per '~'.
+//   - cfg: PUNTATORE a struttura configurazione da popolare.
+//
+// Ritorna ErrorFileNotFound se il file non esiste.
+func LoadFile(filename string, cfg interface{}) error {
+	fullpathFile, err := GetFileFullPath(filename)
 	if err != nil {
 		return err
 	}
 
-	if filepath.Ext(set.filename) == ".jsonc" {
-		fileContent = jsonc.ToJSON(fileContent)
+	return loadFile(fullpathFile, cfg)
+}
+
+// Carica la configurazione da Systemd.
+// ref: https://systemd.io/CREDENTIALS/
+//
+// - filename: deve essere un nome file, sprovvisto di percorso, situato in $CREDENTIALS_DIRECTORY.
+// - cfg: PUNTATORE a struttura configurazione da popolare.
+//
+// Ritorna ErrorFileNotFound se il file non esiste.
+func LoadSystemdCredentials(filename string, cfg interface{}) error {
+	path := os.Getenv("CREDENTIALS_DIRECTORY")
+	if path == "" {
+		return errors.New("systemd credential directory not found")
 	}
 
-	data, isMap := set.Data.(map[string]interface{})
-	if isMap {
-		// I settings sono in una mappa generica:
-		// è costretto a deserializzare ogni singola struttura, anche se in modo inefficiente.
-		var temp map[string]interface{}
-		err = json.Unmarshal([]byte(fileContent), &temp)
-		if err != nil {
-			return err
-		}
+	fullpathFile := path + "/" + filename
 
-		for key, item := range temp {
-			tempj, _ := json.Marshal(item)
+	return loadFile(fullpathFile, cfg)
+}
 
-			err := json.Unmarshal(tempj, data[key])
-			if err != nil {
-				return err
-			}
-		}
-	} else {
-		err = json.Unmarshal([]byte(fileContent), &set.Data)
-		if err != nil {
-			return err
-		}
+// Funzione interna per caricare la configurazione da file.
+//   - filename: nome file con percorso assoluto.
+//   - cfg: PUNTATORE a struttura configurazione da popolare.
+//
+// Ritorna ErrorFileNotFound se il file non esiste.
+func loadFile(filename string, cfg interface{}) error {
+	if !fileExists(filename) {
+		return &ErrorFileNotFound{filename: filename}
 	}
 
-	//fmt.Println(set)
+	var err error
 
-	if set.Data == nil {
-		return errors.New("null settings in file")
+	// Parsa il file.
+	switch filepath.Ext(filename) {
+	case ".json":
+		err = parsers.LoadJsonFile(filename, &cfg)
+	case ".jsonc":
+		err = parsers.LoadJsoncFile(filename, &cfg)
+	case ".yaml":
+		err = parsers.LoadYamlFile(filename, &cfg)
+	case ".toml":
+		err = parsers.LoadTomlFile(filename, &cfg)
+	}
+
+	if err != nil {
+		return fmt.Errorf("cannot parse %s: %s", filename, err)
 	}
 
 	return nil
 }
 
-// SaveSettings - salva le impostazioni
-func (set *Settings) SaveSettings() error {
-	if set.Data == nil {
-		return errors.New("data not set")
+// Salva la configurazione su file.
+//   - filename: se non ha percorso o lo ha relativo, sarà rispetto alla directory corrente;
+//     se ha percorso assoluto può anche iniziare per '~'.
+//   - cfg: struttura configurazione da salvare.
+//   - defaults: (opzionale) struttura configurazione di default.
+//     se passata il file conterrà i soli valori che differiscono da questa struttura.
+func SaveFile(filename string, cfg interface{}, defaults interface{}) error {
+	if cfg == nil {
+		return errors.New("config data cannot be nil")
 	}
 
-	set.lock.Lock()
-	defer set.lock.Unlock()
+	var mapToSave interface{}
 
-	if set.verbose {
-		log.Println("Save settings")
-	}
+	if defaults == nil {
+		var err error
 
-	f, err := os.Create(set.filename)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	diffMap, err := DiffMaps(set.defaultData, set.Data)
-	if err != nil {
-		return err
-	}
-
-	b, err := json.MarshalIndent(diffMap, "", "\t")
-	if err != nil {
-		return err
-	}
-	err = ioutil.WriteFile(set.filename, b, 0666)
-
-	return err
-}
-
-// SaveSettingsDebounce - salva le impostazioni dopo un certo ritardo dall'ultima invocazione.
-// Ogni invocazione resetta il il conteggio del timeout.
-func (set *Settings) SaveSettingsDebounce(saveAfter time.Duration) {
-	if set.timerSave != nil {
-		set.timerSave.Reset(saveAfter)
-	} else {
-		saveFunc := func() {
-			set.SaveSettings()
+		mapToSave, err = diff(defaults, cfg)
+		if err != nil {
+			return err
 		}
-
-		set.timerSave = time.AfterFunc(saveAfter, saveFunc)
+	} else {
+		mapToSave = cfg
 	}
+
+	var err error
+	ext := filepath.Ext(filename)
+
+	switch ext {
+	case ".json":
+		err = parsers.SaveJsonFile(filename, mapToSave)
+	case ".yaml":
+		err = parsers.SaveYamlFile(filename, mapToSave)
+	case ".toml":
+		err = parsers.SaveTomlFile(filename, mapToSave)
+	default:
+		err = fmt.Errorf("no encoder for %s extension", ext)
+	}
+
+	if err != nil {
+		return fmt.Errorf("cannot save to %s: %s", filename, err)
+	}
+
+	return nil
 }
 
-// Settings - struttura oggetto direttamente utilizzabile.
-type Settings struct {
-	verbose  bool
-	filename string
+// Ritorna il nome file completo di percorso assoluto.
+//   - filename: se non ha percorso o lo ha relativo, sarà rispetto alla directory corrente;
+//     se ha percorso assoluto può anche iniziare per '~'.
+func GetFileFullPath(filename string) (string, error) {
+	var fullpath string
 
-	lock      sync.Mutex
-	timerSave *time.Timer
+	switch filename[0] {
+	case '/':
+		// Percorso assoluto.
+		fullpath = filename
 
-	Data        interface{} // Punta ad una struttura dati custom
-	defaultData interface{} // Contiene i dati di default
-}
-
-func (set *Settings) init(filename string, data, defaultData interface{}, verbose bool) error {
-	switch {
-	case filename[0] == '~':
+	case '~':
+		// Percorso assoluto alla home.
 		homeDir, err := homedir.Dir()
 		if err != nil {
-			return errors.New("Can't find homedir")
+			return "", errors.New("can't find homedir: " + err.Error())
 		}
-		set.filename = path.Join(homeDir, filename[1:])
-
-	case filename[0] != '/':
-		// Se il path è relativo allora prefissa con la current working directory.
-		currDir, err := os.Getwd()
-		if err != nil {
-			return err
-		}
-		set.filename = path.Join(currDir, filename)
+		fullpath = path.Join(homeDir, filename[1:])
 
 	default:
-		set.filename = filename
+		// Percorso relativo: prefissa con la directory corrente.
+		currDir, err := os.Getwd()
+		if err != nil {
+			return "", err
+		}
+		fullpath = path.Join(currDir, filename)
 	}
 
-	if filepath.Ext(set.filename) == ".json" && fileExists(set.filename+"c") {
-		// filename.jsonc exists, so use it instead.
-		set.filename += "c"
-	}
-
-	set.Data = data
-	set.defaultData = defaultData
-
-	set.verbose = verbose
-
-	if verbose {
-		log.Println("Settings filename", set.filename)
-	}
-
-	return nil
+	return fullpath, nil
 }
 
 func fileExists(filename string) bool {

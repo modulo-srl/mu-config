@@ -1,0 +1,49 @@
+{
+	// Remote IP address.
+	"IP": "127.0.0.1",
+
+	// Remote port.
+	"Port": 12345,
+
+	// Default protocol.
+	"default_proto": {
+		// Name describes the protocol name.
+		// Multiple line documentation test.
+		// Protocol name.
+		"Name": "TCP",
+
+		// Major version.
+		"Major": 1,
+
+		// Minor version.
+		"Minor": 0
+	},
+
+	// Optional supported protocols.
+	"optional_protos": [
+		{
+			// Name describes the protocol name.
+			// Multiple line documentation test.
+			// Protocol name.
+			"Name": "UDP",
+
+			// Major version.
+			"Major": 1,
+
+			// Minor version.
+			"Minor": 0
+		},
+		{
+			// Name describes the protocol name.
+			// Multiple line documentation test.
+			// Protocol name.
+			"Name": "HTTP",
+
+			// Major version.
+			"Major": 1,
+
+			// Minor version.
+			"Minor": 1
+		}
+	]
+}

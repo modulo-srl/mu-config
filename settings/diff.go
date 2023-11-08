@@ -6,10 +6,10 @@ import (
 	"gitlab.com/c0b/go-ordered-json"
 )
 
-// DiffMaps returns a map as difference mapChild - mapParent, returning only fields with different values.
-// Fields with the same name on two maps must to be of the same type.
-// Uses an ordered map in order to mantain the same order of the original fields.
-func DiffMaps(mapParent, mapChild interface{}) (diffedMap *ordered.OrderedMap, err error) {
+// Effettua la differenza tra due entità dati ritornando i soli campi con valori differenti (out = child - parent).
+// Campi con lo stesso nome nelle due struct devono essere dello stesso tipo.
+// Ritorna una map ordinata in modo da mantenere il medesimo ordine dei campi originali.
+func diff(parent, child interface{}) (diffedMap *ordered.OrderedMap, err error) {
 	marshUnmarsh := func(m interface{}) (out *ordered.OrderedMap, err error) {
 		b, err := json.Marshal(&m)
 		if err != nil {
@@ -28,11 +28,11 @@ func DiffMaps(mapParent, mapChild interface{}) (diffedMap *ordered.OrderedMap, e
 
 	var m1, m2 *ordered.OrderedMap
 
-	m1, err = marshUnmarsh(&mapParent)
+	m1, err = marshUnmarsh(&parent)
 	if err != nil {
 		return nil, err
 	}
-	m2, err = marshUnmarsh(&mapChild)
+	m2, err = marshUnmarsh(&child)
 	if err != nil {
 		return nil, err
 	}
@@ -171,7 +171,7 @@ func diffFields(field1, field2 interface{}) interface{} {
 	return nil
 }
 
-func cloneData(from, to interface{}) error {
+/*func cloneData(from, to interface{}) error {
 	bout, err := json.Marshal(&from)
 	if err != nil {
 		return err
@@ -179,4 +179,4 @@ func cloneData(from, to interface{}) error {
 
 	err = json.Unmarshal(bout, &to)
 	return err
-}
+}*/

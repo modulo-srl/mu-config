@@ -1,6 +1,11 @@
 package config
 
-import "github.com/modulo-srl/mu-config/settings"
+import (
+	"fmt"
+	"path/filepath"
+
+	"github.com/modulo-srl/mu-config/settings"
+)
 
 // Configurazione globale.
 var Cfg = MySettingsDefaults()
@@ -12,5 +17,21 @@ func GetDefaultConfig() string {
 
 // Carica la configurazione da file.
 func Load(filename string) error {
-	return settings.LoadFile(filename, &Cfg)
+	loadedFilename, err := settings.LoadFile(filename, &Cfg, true)
+	if err != nil {
+		return err
+	}
+	fmt.Println("settings loaded from: " + loadedFilename)
+
+	// Carica la configurazione da systemd, per qualsiasi formato.
+	systemdFilename := filepath.Base(filename)
+	loadedFilename, err = settings.LoadSystemdCredentials(systemdFilename, &Cfg, false)
+	if err != nil {
+		return err
+	}
+	if loadedFilename != "" {
+		fmt.Println("systemd settings loaded from: " + loadedFilename)
+	}
+
+	return err
 }

@@ -11,7 +11,7 @@ import (
 
 func main() {
 	fdefaultConfig := flag.Bool("default-config", false, "Show default config")
-	fconfig := flag.String("config-file", "settings.yaml", "Config file's (absolute or relative path)")
+	fconfig := flag.String("config-file", "settings", "Config file (absolute or relative path, without extension will try for .json, .jsonc, .yaml, .toml)")
 
 	if *fdefaultConfig {
 		fmt.Print(config.GetDefaultConfig())

@@ -46,19 +46,19 @@ func main() {
 	cfg := defaultSettings()
 
 	// Carica i settaggi da file jsonc.
-	err := muconfig.LoadFile("mysettings.jsonc", &cfg)
+	_, err := muconfig.LoadFile("mysettings.jsonc", &cfg, true)
 	if err != nil {
 		panic(err)
 	}
 
 	// Carica ulteriori settaggi in override da file yaml.
-	err = muconfig.LoadFile("mysettings.yaml", &cfg)
+	_, err = muconfig.LoadFile("mysettings.yaml", &cfg, true)
 	if err != nil {
 		panic(err)
 	}
 
-	// Carica override di eventuali valori secret da systemd.
-	err = muconfig.LoadSystemdCredentials("mysettings.toml", &cfg)
+	// Carica override di eventuali valori secret da systemd (non fallisce se non esiste).
+	_, err = muconfig.LoadSystemdCredentials("mysettings.toml", &cfg, false)
 	if err != nil {
 		panic(err)
 	}

@@ -6,66 +6,106 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 
 	"github.com/mitchellh/go-homedir"
 	"github.com/modulo-srl/mu-config/settings/parsers"
 )
 
-type ErrorFileNotFound struct {
-	filename string
-}
-
-func (e *ErrorFileNotFound) Error() string {
-	return "file not found: " + e.filename
-}
-
 // Carica la configurazione da file.
 //   - filename: se non ha percorso o lo ha relativo, sarà rispetto alla directory corrente;
 //     se ha percorso assoluto può anche iniziare per '~'.
+//     Se sprovvisto di estensione tenta il caricamento di qualsiasi formato conosciuto.
 //   - cfg: PUNTATORE a struttura configurazione da popolare.
 //
-// Ritorna ErrorFileNotFound se il file non esiste.
-func LoadFile(filename string, cfg interface{}) error {
+// - errorWhenNotFound: true per generare un errore se il file non viene trovato.
+func LoadFile(filename string, cfg interface{}, errorWhenNotFound bool) (loadedFilename string, err error) {
 	fullpathFile, err := GetFileFullPath(filename)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	return loadFile(fullpathFile, cfg)
+	return loadFile(fullpathFile, cfg, errorWhenNotFound)
 }
 
 // Carica la configurazione da Systemd.
 // ref: https://systemd.io/CREDENTIALS/
 //
-// - filename: deve essere un nome file, sprovvisto di percorso, situato in $CREDENTIALS_DIRECTORY.
-// - cfg: PUNTATORE a struttura configurazione da popolare.
-//
-// Ritorna ErrorFileNotFound se il file non esiste.
-func LoadSystemdCredentials(filename string, cfg interface{}) error {
+//   - filename: deve essere un nome file, sprovvisto di percorso assoluto, situato in $CREDENTIALS_DIRECTORY.
+//     L'estensione viene ignorata, tentando il carimento di qualsiasi formato conosciuto.
+//   - cfg: PUNTATORE a struttura configurazione da popolare.
+//   - errorWhenNotFound: true per generare un errore se il file non viene trovato o se $CREDENTIALS_DIRECTORY non è settato.
+func LoadSystemdCredentials(filename string, cfg interface{}, errorWhenNotFound bool) (loadedFilename string, err error) {
 	path := os.Getenv("CREDENTIALS_DIRECTORY")
 	if path == "" {
-		return errors.New("systemd credential directory not found")
+		if errorWhenNotFound {
+			return "", errors.New("systemd credential directory not found")
+		}
+		return "", nil
+	}
+
+	// Rimuove l'eventuale estensione, permettendo un override di qualsiasi formato.
+	ext := filepath.Ext(filename)
+	switch ext {
+	case ".json":
+		fallthrough
+	case ".jsonc":
+		fallthrough
+	case ".yaml":
+		fallthrough
+	case ".toml":
+		filename = strings.TrimSuffix(filename, ext)
 	}
 
 	fullpathFile := path + "/" + filename
 
-	return loadFile(fullpathFile, cfg)
+	return loadFile(fullpathFile, cfg, errorWhenNotFound)
 }
 
 // Funzione interna per caricare la configurazione da file.
 //   - filename: nome file con percorso assoluto.
+//     se senza estensione cerca di caricare .json, .jsonc, .yaml, .toml
+//     Se sprovvisto di estensione tenta il caricamento di qualsiasi formato conosciuto.
 //   - cfg: PUNTATORE a struttura configurazione da popolare.
-//
-// Ritorna ErrorFileNotFound se il file non esiste.
-func loadFile(filename string, cfg interface{}) error {
-	if !fileExists(filename) {
-		return &ErrorFileNotFound{filename: filename}
+//   - errorWhenNotFound: true per generare un errore se il file non viene trovato.
+func loadFile(filename string, cfg interface{}, errorWhenNotFound bool) (loadedFilename string, err error) {
+	ext := filepath.Ext(filename)
+
+	switch ext {
+	case ".json":
+		fallthrough
+	case ".jsonc":
+		fallthrough
+	case ".yaml":
+		fallthrough
+	case ".toml":
+		if !fileExists(filename) {
+			if errorWhenNotFound {
+				return "", errors.New("file not found: " + filename)
+			}
+			return "", nil
+		}
+
+	default:
+		if fileExists(filename + ".json") {
+			ext = ".json"
+		} else if fileExists(filename + ".jsonc") {
+			ext = ".jsonc"
+		} else if fileExists(filename + ".yaml") {
+			ext = ".yaml"
+		} else if fileExists(filename + ".toml") {
+			ext = ".toml"
+		} else {
+			if errorWhenNotFound {
+				return "", errors.New("file not found: " + filename + ".json/.jsonc/.yaml/.toml")
+			}
+			return "", nil
+		}
+		filename += ext
 	}
 
-	var err error
-
 	// Parsa il file.
-	switch filepath.Ext(filename) {
+	switch ext {
 	case ".json":
 		err = parsers.LoadJsonFile(filename, &cfg)
 	case ".jsonc":
@@ -77,10 +117,10 @@ func loadFile(filename string, cfg interface{}) error {
 	}
 
 	if err != nil {
-		return fmt.Errorf("cannot parse %s: %s", filename, err)
+		return "", fmt.Errorf("cannot parse %s: %s", filename, err)
 	}
 
-	return nil
+	return filename, nil
 }
 
 // Salva la configurazione su file.

@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 
 	"github.com/modulo-srl/mu-config/go2cfg/generator"
+	"github.com/modulo-srl/mu-config/go2cfg/renderers"
 )
 
 const version = "1.0"
@@ -32,13 +34,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	docMode := generator.NoFields
+	docMode := renderers.NoFields
 	if *docTypeMode != "" {
 		switch *docTypeMode {
 		case "all":
-			docMode = generator.AllFields
+			docMode = renderers.AllFields
 		case "basic":
-			docMode = generator.BasicFields
+			docMode = renderers.BasicFields
 		default:
 			fmt.Printf("Invalid value \"%s\" for -doc-types flag.\n\n", *docTypeMode)
 			flag.Usage()
@@ -62,7 +64,20 @@ func main() {
 		os.Exit(1)
 	}
 
-	code, err := generator.Generate(dir, *typeName, docMode)
+	var renderer renderers.Interface
+	ext := filepath.Ext(*output)
+	switch ext {
+	case ".jsonc":
+		renderer = renderers.NewJsonc(docMode)
+
+	case ".toml":
+		renderer = renderers.NewToml(docMode, false)
+
+	default:
+		log.Fatalf("unsupported output format: %s", ext)
+	}
+
+	code, err := generator.Generate(dir, *typeName, renderer)
 	if err != nil {
 		log.Fatal(err)
 	}

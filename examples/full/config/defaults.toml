@@ -1,0 +1,29 @@
+# Main configuration parameters.
+[Main]
+ParamString = "ParamValue \n \"test\" \U0001f60a \u4e16\u754c"
+ParamBool = true
+ParamInt = 12
+# Float value, default 1.234
+ParamFloat = 1.234
+
+[Main.ParamSub]
+ParamArray = [1, 2, 3]
+
+[Main.ParamSub.ParamMap]
+'key 1' = '/path/to/file'
+key2 = 'c:\path\to\file'
+
+
+# Users list.
+[[Users]]
+# User name.
+Name = 'John'
+# User e-mail.
+Email = 'john@email'
+
+[[Users]]
+# User name.
+Name = 'Smith'
+# User e-mail.
+Email = ""
+

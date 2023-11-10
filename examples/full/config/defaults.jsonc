@@ -1,11 +1,22 @@
 {
 	// Main configuration parameters.
 	"Main": {
+		"ParamSub": {
+			"ParamMap": {
+				"key 1": "value 1",
+				"key2": "value 2"
+			},
+			"ParamArray": [
+				1,
+				2,
+				3
+			]
+		},
 		"ParamString": "ParamValue \n \"test\"",
 		"ParamBool": true,
 		"ParamInt": 12,
 
-		// Float value, defalt 1.234
+		// Float value, default 1.234
 		"ParamFloat": 1.234
 	},
 

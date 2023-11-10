@@ -47,7 +47,7 @@ func TestConstInfo_String(t *testing.T) {
 		"Name: \"ConstTypeF\"\nValue: 128\nDoc: \"ConstTypeF doc block.\\nConstTypeF comment.\\n\"\n",
 	}
 
-	whitespacesReplacer := strings.NewReplacer(" ", "◦", "\t", "———➞")
+	whitespacesReplacer := strings.NewReplacer(" ", "◦", "\t", "———➞", "\n", "⏎\n")
 	for i, constInfo := range consts {
 		s := constInfo.String()
 		if s != want[i] {
@@ -71,7 +71,7 @@ func TestConstInfo_InlineDoc(t *testing.T) {
 		"ConstTypeF doc block. ConstTypeF comment.",
 	}
 
-	whitespacesReplacer := strings.NewReplacer(" ", "◦", "\t", "———➞")
+	whitespacesReplacer := strings.NewReplacer(" ", "◦", "\t", "———➞", "\n", "⏎\n")
 	for i, constInfo := range consts {
 		s := constInfo.InlineDoc()
 		if s != want[i] {

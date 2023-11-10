@@ -2,7 +2,6 @@ package distiller
 
 import (
 	"fmt"
-	"go/ast"
 	"reflect"
 	"strings"
 	"testing"
@@ -25,7 +24,7 @@ func (f *FieldInfoMatch) String() string {
 }
 
 func TestFieldInfo_String(t *testing.T) {
-	info := getFieldsInfo(t, []string{"../testdata"})
+	info := testutils.GetFieldsInfo(t, []string{"../testdata"})
 	want := []string{
 		`Type: int
 Name: "Identifier"
@@ -237,109 +236,13 @@ Doc: "Type documentation block.\nType of constant.\n"
 `,
 	}
 
-	whitespacesReplacer := strings.NewReplacer(" ", "◦", "\t", "———➞")
+	whitespacesReplacer := strings.NewReplacer(" ", "◦", "\t", "———➞", "\n", "⏎\n")
 	for i, fieldInfo := range info {
 		s := fieldInfo.String()
 		if s != want[i] {
 			t.Fatalf("String return mismatch: got:\n%s\nwant:\n%s\n",
 				whitespacesReplacer.Replace(s),
 				whitespacesReplacer.Replace(want[i]))
-		}
-	}
-}
-
-func TestFieldInfo_FormatDoc(t *testing.T) {
-	info := getFieldsInfo(t, []string{"../testdata"})
-	testTable := []struct {
-		types bool
-		want  string
-	}{
-		{types: true, want: "// int - Identifier documentation block.\n"},
-		{types: true, want: "// bool - Enabled comment line.\n"},
-		{types: true, want: "// uint32\n"},
-		{types: true, want: "// testdata.Embedded - Embedded documentation block.\n"},
-		{types: true, want: "// float32 - Position comment line.\n"},
-		{types: true, want: "// float32 - Velocity documentation block.\n"},
-		{types: true, want: "// float32\n"},
-		{types: true, want: "// string - Shadowing field.\n"},
-		{types: true, want: "// string - Field A\n"},
-		{types: true, want: "// int - Field B\n"},
-		{types: true, want: "// testdata.EmptySubType\n"},
-		{types: true, want: "// []testdata.EmptySubType\n"},
-		{types: true, want: "// string - Name describes the protocol name.\n// Multiple line documentation test.\n// Protocol name.\n"},
-		{types: true, want: "// int - Major version.\n"},
-		{types: true, want: "// int - Minor version.\n"},
-		{types: true, want: "// string - Remote IP address.\n"},
-		{types: true, want: "// int - Remote port.\n"},
-		{types: true, want: "// testdata.Protocol - Default protocol.\n"},
-		{types: true, want: "// []testdata.Protocol - Optional supported protocols.\n"},
-		{types: true, want: "// string - Name of the user documentation block.\n// User name comment.\n"},
-		{types: true, want: "// string - User surname comment.\n"},
-		{types: true, want: "// int - Age documentation block.\n// User age.\n"},
-		{types: true, want: "// int - Number of stars achieved.\n"},
-		{types: true, want: "// []string - Addresses comment.\n"},
-		{types: true, want: "// map[string]string - User tags.\n"},
-		{
-			types: true,
-			want: `// testdata.ConstType - Type documentation block.
-// Type of constant.
-// Allowed values:
-// ConstTypeA =   0  ConstTypeA doc block. ConstTypeA comment.
-// ConstTypeB =   1  ConstTypeB comment.
-// ConstTypeC =   2  ConstTypeC doc block. ConstTypeC comment.
-// ConstTypeD =  32  ConstTypeD doc block.
-// ConstTypeE =  64  ConstTypeE doc block. ConstTypeE comment.
-// ConstTypeF = 128  ConstTypeF doc block. ConstTypeF comment.
-`,
-		},
-
-		{types: false, want: "// Identifier documentation block.\n"},
-		{types: false, want: "// Enabled comment line.\n"},
-		{types: false, want: ""},
-		{types: false, want: "// Embedded documentation block.\n"},
-		{types: false, want: "// Position comment line.\n"},
-		{types: false, want: "// Velocity documentation block.\n"},
-		{types: false, want: ""},
-		{types: false, want: "// Shadowing field.\n"},
-		{types: false, want: "// Field A\n"},
-		{types: false, want: "// Field B\n"},
-		{types: false, want: ""},
-		{types: false, want: ""},
-		{types: false, want: "// Name describes the protocol name.\n// Multiple line documentation test.\n// Protocol name.\n"},
-		{types: false, want: "// Major version.\n"},
-		{types: false, want: "// Minor version.\n"},
-		{types: false, want: "// Remote IP address.\n"},
-		{types: false, want: "// Remote port.\n"},
-		{types: false, want: "// Default protocol.\n"},
-		{types: false, want: "// Optional supported protocols.\n"},
-		{types: false, want: "// Name of the user documentation block.\n// User name comment.\n"},
-		{types: false, want: "// User surname comment.\n"},
-		{types: false, want: "// Age documentation block.\n// User age.\n"},
-		{types: false, want: "// Number of stars achieved.\n"},
-		{types: false, want: "// Addresses comment.\n"},
-		{types: false, want: "// User tags.\n"},
-		{
-			types: false,
-			want: `// Type documentation block.
-// Type of constant.
-// Allowed values:
-// ConstTypeA =   0  ConstTypeA doc block. ConstTypeA comment.
-// ConstTypeB =   1  ConstTypeB comment.
-// ConstTypeC =   2  ConstTypeC doc block. ConstTypeC comment.
-// ConstTypeD =  32  ConstTypeD doc block.
-// ConstTypeE =  64  ConstTypeE doc block. ConstTypeE comment.
-// ConstTypeF = 128  ConstTypeF doc block. ConstTypeF comment.
-`,
-		},
-	}
-
-	whitespacesReplacer := strings.NewReplacer(" ", "◦", "\t", "———➞")
-	for i, test := range testTable {
-		doc := info[i%len(info)].FormatDoc("", test.types)
-		if doc != test.want {
-			t.Fatalf("FormatDoc return mismatch:\ngot:%v\nwant:%v\n",
-				whitespacesReplacer.Replace(doc),
-				whitespacesReplacer.Replace(test.want))
 		}
 	}
 }
@@ -564,7 +467,7 @@ func TestFieldInfoMultiPackage(t *testing.T) {
 }
 
 func testFieldInfo(t *testing.T, patterns []string, want []*FieldInfoMatch) {
-	fields := getFieldsInfo(t, patterns)
+	fields := testutils.GetFieldsInfo(t, patterns)
 
 	if len(fields) != len(want) {
 		t.Fatalf("Parsed %d fields, want %d.", len(fields), len(want))
@@ -577,40 +480,4 @@ func testFieldInfo(t *testing.T, patterns []string, want []*FieldInfoMatch) {
 			t.Fatalf("Parsed field mismatch:\n%s\n\nwant:\n%s\n", field, want[i])
 		}
 	}
-}
-
-func getFieldsInfo(t *testing.T, patterns []string) []*FieldInfo {
-	pkgs := testutils.LoadPackage(t, patterns...)
-	var fields []*FieldInfo
-
-	for _, pattern := range patterns {
-		_, err := NewPackageInfo(pattern, "")
-		if err != nil {
-			t.Fatalf("Error loading package %s: %v", pattern, err)
-		}
-	}
-
-	for _, pkg := range pkgs {
-		for _, astFile := range pkg.Syntax {
-			for _, decl := range astFile.Decls {
-				genDecl, ok := decl.(*ast.GenDecl)
-				if !ok {
-					continue
-				}
-
-				ast.Inspect(genDecl, func(node ast.Node) bool {
-					var field *ast.Field
-					field, ok = node.(*ast.Field)
-					if !ok {
-						return true
-					}
-
-					fields = append(fields, NewFieldInfo(field, pkg))
-
-					return true
-				})
-			}
-		}
-	}
-	return fields
 }

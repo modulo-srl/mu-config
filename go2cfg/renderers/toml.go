@@ -100,7 +100,7 @@ func (t *Toml) RenderStruct(info *distiller.StructInfo, defaults interface{}, in
 		if len(t.path) > 0 {
 			t.path += "."
 		}
-		t.path += t.renderKey(field.Name)
+		t.path += t.renderKey(name)
 
 		// No default defined for this field, if named (struct) or array will be rendered below.
 		_, isNamed := field.Type.(*types.Named)

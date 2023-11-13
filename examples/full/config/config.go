@@ -11,8 +11,20 @@ import (
 var Cfg = MySettingsDefaults()
 
 // Ritorna il contenuto del file di configurazione di default precedentemente generato.
-func GetDefaultConfig() string {
-	return defaultsRaw
+// - format: "json", "toml", "yaml"
+func GetDefaultConfig(format string) string {
+	switch format {
+	case "json":
+		fallthrough
+	case "jsonc":
+		return defaultsRawJsonc
+	case "toml":
+		return defaultsRawToml
+	case "yaml":
+		return defaultsRawYaml
+	default:
+		return ""
+	}
 }
 
 // Carica la configurazione da file.

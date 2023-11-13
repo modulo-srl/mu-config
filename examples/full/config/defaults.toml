@@ -6,12 +6,12 @@ ParamInt = 12
 # Float value, default 1.234
 ParamFloat = 1.234
 
-[Main.ParamSub]
-ParamArray = [1, 2, 3]
+	[Main.ParamSub]
+	ParamArray = [1, 2, 3]
 
-[Main.ParamSub.ParamMap]
-'key 1' = '/path/to/file'
-key2 = 'c:\path\to\file'
+		[Main.ParamSub.ParamMap]
+		'key 1' = '/path/to/file'
+		key2 = 'c:\path\to\file'
 
 
 # Users list.

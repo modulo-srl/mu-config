@@ -18,10 +18,20 @@
             "type": "go",
             "request": "launch",
             "mode": "auto",
-            "program": "${workspaceFolder}/go2cfg/cmd",
-            "cwd": "${workspaceFolder}/go2cfg/testdata",
+            "program": "${workspaceFolder}/go2cfg",
+            "cwd": "${workspaceFolder}/go2cfg",
             "env": {},
             "args": ["-type", "Nesting", "-doc-types", "basic", "-out", "nesting_basic_fields.jsonc"]
+        },
+        {
+            "name": "exmples/full",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/examples/full",
+            "cwd": "${workspaceFolder}/examples/full",
+            "env": {},
+            "args": ["-default-config", "toml", "-config-file", "config/defaults"]
         }
     ]
 }

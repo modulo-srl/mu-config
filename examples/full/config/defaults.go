@@ -1,7 +1,7 @@
 package config
 
 // Depends on: go install github.com/modulo-srl/mu-config/go2cfg@latest
-//go:generate go2cfg -type=MySettings -out=defaults.jsonc
+//go:generate go2cfg -type=MySettings -out=defaults
 
 import (
 	_ "embed"
@@ -59,4 +59,10 @@ func MySettingsDefaults() *MySettings {
 }
 
 //go:embed defaults.jsonc
-var defaultsRaw string
+var defaultsRawJsonc string
+
+//go:embed defaults.toml
+var defaultsRawToml string
+
+//go:embed defaults.toml
+var defaultsRawYaml string

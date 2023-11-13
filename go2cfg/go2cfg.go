@@ -11,12 +11,12 @@ import (
 	"github.com/modulo-srl/mu-config/go2cfg/renderers"
 )
 
-const version = "1.0"
+const version = "1.1"
 
 func main() {
 	flag.Usage = usage
 
-	typeName := flag.String("type", "", "struct type name for which generate JSONC; mandatory")
+	typeName := flag.String("type", "", "struct type name for which generate config; mandatory")
 	output := flag.String("out", "", "output filepath; The extension in the filepath\n"+
 		"establishes the type of format to be generated, otherwise without extension\n"+
 		"a file for each format will be exported (yaml, toml, jsonc).\n"+
@@ -64,31 +64,49 @@ func main() {
 		os.Exit(1)
 	}
 
-	var renderer renderers.Interface
-	ext := filepath.Ext(*output)
-	switch ext {
-	case ".jsonc":
-		renderer = renderers.NewJsonc(docMode)
+	var code string
+	var err error
 
-	case ".toml":
-		renderer = renderers.NewToml(docMode, false)
-
-	default:
-		log.Fatalf("unsupported output format: %s", ext)
-	}
-
-	code, err := generator.Generate(dir, *typeName, renderer)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if *output != "" {
-		err = os.WriteFile(*output, []byte(code), 0666)
+	if *output == "" {
+		code, err = generateToml(dir, *typeName, docMode)
 		if err != nil {
 			log.Fatal(err)
 		}
-	} else {
+
 		print(code)
+		os.Exit(0)
+	}
+
+	ext := filepath.Ext(*output)
+	switch ext {
+	case ".json":
+		fallthrough
+	case ".jsonc":
+		err = generateJsoncFile(dir, *typeName, *output, docMode)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+	case ".toml":
+		err = generateTomlFile(dir, *typeName, *output, docMode)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+	case ".yaml":
+		// TODO
+		log.Fatal("yaml ancora non supportato")
+
+	default:
+		err = generateJsoncFile(dir, *typeName, *output+".jsonc", docMode)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		err = generateTomlFile(dir, *typeName, *output+".toml", docMode)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 }
 
@@ -97,13 +115,49 @@ func usage() {
 
 	println("Usage:")
 	println("  go2cfg -type <type-name> [-doc-types bits] [-out jsonc-filename] [package-dir]\n")
+	println()
 
 	flag.PrintDefaults()
 
 	println("\npackage-dir: directory that contains the go file where specified type is")
 	println("defined; when omitted, current working directory will be used\n")
+}
 
-	println("Allowed constants for -doc-types flag:")
-	println("  all    Display type in all fields;")
-	println("  basic  Display type in fields of basic type (int, float, bool, string).")
+func generateJsoncFile(dir, typeName, filename string, docMode renderers.DocTypesMode) error {
+	renderer := renderers.NewJsonc(docMode)
+	output, err := generator.Generate(dir, typeName, renderer)
+	if err != nil {
+		return err
+	}
+
+	err = os.WriteFile(filename, []byte(output), 0666)
+	if err != nil {
+		return fmt.Errorf("generating JSON file: %s", err)
+	}
+
+	return nil
+}
+
+func generateTomlFile(dir, typeName, filename string, docMode renderers.DocTypesMode) error {
+	output, err := generateToml(dir, typeName, docMode)
+	if err != nil {
+		return err
+	}
+
+	err = os.WriteFile(filename, []byte(output), 0666)
+	if err != nil {
+		return fmt.Errorf("generating TOML file: %s", err)
+	}
+
+	return nil
+}
+
+func generateToml(dir, typeName string, docMode renderers.DocTypesMode) (string, error) {
+	renderer := renderers.NewToml(docMode, true)
+	output, err := generator.Generate(dir, typeName, renderer)
+	if err != nil {
+		return "", fmt.Errorf("generating TOML: %s", err)
+	}
+
+	return output, nil
 }

@@ -107,7 +107,7 @@ func loadFile(filename string, cfg interface{}, errorWhenNotFound bool) (loadedF
 	// Parsa il file.
 	switch ext {
 	case ".json":
-		err = parsers.LoadJsonFile(filename, &cfg)
+		fallthrough
 	case ".jsonc":
 		err = parsers.LoadJsoncFile(filename, &cfg)
 	case ".yaml":
@@ -152,6 +152,8 @@ func SaveFile(filename string, cfg interface{}, defaults interface{}) error {
 
 	switch ext {
 	case ".json":
+		fallthrough
+	case ".jsonc":
 		err = parsers.SaveJsonFile(filename, mapToSave)
 	case ".yaml":
 		err = parsers.SaveYamlFile(filename, mapToSave)

@@ -64,5 +64,5 @@ var defaultsRawJsonc string
 //go:embed defaults.toml
 var defaultsRawToml string
 
-//go:embed defaults.toml
+//go:embed defaults.yaml
 var defaultsRawYaml string

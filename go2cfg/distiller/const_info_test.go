@@ -6,12 +6,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/modulo-srl/mu-config/go2cfg/testutils"
 	"golang.org/x/tools/go/packages"
 )
 
 func TestNewConstInfo(t *testing.T) {
-	pkgs := testutils.LoadPackage(t, "../testdata/consts.go")
+	pkgs := LoadPackage(t, "../testdata/consts.go")
 	consts := getConsts(pkgs)
 
 	want := []*ConstInfo{
@@ -35,7 +34,7 @@ func TestNewConstInfo(t *testing.T) {
 }
 
 func TestConstInfo_String(t *testing.T) {
-	pkgs := testutils.LoadPackage(t, "../testdata/consts.go")
+	pkgs := LoadPackage(t, "../testdata/consts.go")
 	consts := getConsts(pkgs)
 
 	want := []string{
@@ -59,7 +58,7 @@ func TestConstInfo_String(t *testing.T) {
 }
 
 func TestConstInfo_InlineDoc(t *testing.T) {
-	pkgs := testutils.LoadPackage(t, "../testdata/consts.go")
+	pkgs := LoadPackage(t, "../testdata/consts.go")
 	consts := getConsts(pkgs)
 
 	want := []string{

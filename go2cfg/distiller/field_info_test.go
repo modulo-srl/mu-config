@@ -5,8 +5,6 @@ import (
 	"reflect"
 	"strings"
 	"testing"
-
-	"github.com/modulo-srl/mu-config/go2cfg/testutils"
 )
 
 type FieldInfoMatch struct {
@@ -24,7 +22,7 @@ func (f *FieldInfoMatch) String() string {
 }
 
 func TestFieldInfo_String(t *testing.T) {
-	info := testutils.GetFieldsInfo(t, []string{"../testdata"})
+	info := GetFieldsInfo(t, []string{"../testdata"})
 	want := []string{
 		`Type: int
 Name: "Identifier"
@@ -467,7 +465,7 @@ func TestFieldInfoMultiPackage(t *testing.T) {
 }
 
 func testFieldInfo(t *testing.T, patterns []string, want []*FieldInfoMatch) {
-	fields := testutils.GetFieldsInfo(t, patterns)
+	fields := GetFieldsInfo(t, patterns)
 
 	if len(fields) != len(want) {
 		t.Fatalf("Parsed %d fields, want %d.", len(fields), len(want))

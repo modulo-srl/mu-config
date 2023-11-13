@@ -1,7 +1,6 @@
-package testutils
+package distiller
 
 import (
-	"github.com/modulo-srl/mu-config/go2cfg/distiller"
 	"go/ast"
 	"golang.org/x/tools/go/packages"
 	"testing"
@@ -26,12 +25,12 @@ func LoadPackage(t *testing.T, patterns ...string) []*packages.Package {
 	return pkgs
 }
 
-func GetFieldsInfo(t *testing.T, patterns []string) []*distiller.FieldInfo {
+func GetFieldsInfo(t *testing.T, patterns []string) []*FieldInfo {
 	pkgs := LoadPackage(t, patterns...)
-	var fields []*distiller.FieldInfo
+	var fields []*FieldInfo
 
 	for _, pattern := range patterns {
-		_, err := distiller.NewPackageInfo(pattern, "")
+		_, err := NewPackageInfo(pattern, "")
 		if err != nil {
 			t.Fatalf("Error loading package %s: %v", pattern, err)
 		}
@@ -52,7 +51,7 @@ func GetFieldsInfo(t *testing.T, patterns []string) []*distiller.FieldInfo {
 						return true
 					}
 
-					fields = append(fields, distiller.NewFieldInfo(field, pkg))
+					fields = append(fields, NewFieldInfo(field, pkg))
 
 					return true
 				})

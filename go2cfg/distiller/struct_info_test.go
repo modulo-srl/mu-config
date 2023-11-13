@@ -10,7 +10,6 @@ import (
 
 	"github.com/modulo-srl/mu-config/go2cfg/ordered"
 	"github.com/modulo-srl/mu-config/go2cfg/testdata/multipkg/network"
-	"github.com/modulo-srl/mu-config/go2cfg/testutils"
 )
 
 type StructInfoMatch struct {
@@ -138,7 +137,7 @@ func TestStructInfoDefaultsMultiPackage(t *testing.T) {
 }
 
 func testStructInfo(t *testing.T, pattern string, want []*StructInfoMatch) {
-	pkgs := testutils.LoadPackage(t, pattern)
+	pkgs := LoadPackage(t, pattern)
 
 	var structs []*StructInfo
 
@@ -183,7 +182,7 @@ func testStructInfo(t *testing.T, pattern string, want []*StructInfoMatch) {
 }
 
 func testStructInfoDefaults(t *testing.T, pattern string, name string, want map[string]interface{}) {
-	pkgs := testutils.LoadPackage(t, pattern)
+	pkgs := LoadPackage(t, pattern)
 
 	for _, pkg := range pkgs {
 		for _, astFile := range pkg.Syntax {

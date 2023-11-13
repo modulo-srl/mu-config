@@ -2,7 +2,6 @@ package renderers
 
 import (
 	"github.com/modulo-srl/mu-config/go2cfg/distiller"
-	"github.com/modulo-srl/mu-config/go2cfg/testutils"
 	"go/constant"
 	"go/types"
 	"reflect"
@@ -11,7 +10,7 @@ import (
 )
 
 func TestFieldInfo_renderDoc(t *testing.T) {
-	info := testutils.GetFieldsInfo(t, []string{"../testdata"})
+	info := distiller.GetFieldsInfo(t, []string{"../testdata"})
 	testTable := []struct {
 		types bool
 		want  string

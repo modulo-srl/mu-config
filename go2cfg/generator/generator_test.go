@@ -78,7 +78,7 @@ func TestGenerator(t *testing.T) {
 			want := string(content)
 
 			if code != want {
-				t.Fatalf("Generated JSONC mismatch for %s struct:\n%s\n\nwant %s:\n%s",
+				t.Fatalf("Generated code mismatch for %s struct:\n%s\n\nwant %s:\n%s",
 					test.typeName,
 					whitespacesReplacer.Replace(code),
 					test.filename,

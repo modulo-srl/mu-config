@@ -8,7 +8,7 @@ round_trip_time = 123
 [NetStatus]
 # Connected flag comment.
 Connected = true
-# network.ConnState - Connection state comment.
+# Connection state comment.
 # Allowed values:
 # StateDisconnected = 0  StateDisconnected signals the Disconnected state.
 # StateConnecting   = 1  StateConnecting signals the connection-pending state.

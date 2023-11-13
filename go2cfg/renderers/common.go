@@ -142,3 +142,17 @@ func typeZero(field *distiller.FieldInfo) interface{} {
 
 	return value
 }
+
+// fieldsSlice defines a slice of fields.
+type fieldsSlice []*distiller.FieldInfo
+
+// indexOf return index of field into the slice, -1 if not found.
+func (fs fieldsSlice) indexOf(name string) int {
+	for i, field := range fs {
+		if field.Name == name {
+			return i
+		}
+	}
+
+	return -1
+}

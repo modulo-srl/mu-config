@@ -30,12 +30,10 @@ func NewToml(mode DocTypesMode, indented bool) *Toml {
 	}
 }
 
-func (t *Toml) RenderStruct(info *distiller.StructInfo, defaults interface{}, indent string,
-	embedded bool, parentShadowing []string) (string, error) {
+func (t *Toml) RenderStruct(info *distiller.StructInfo, defaults interface{}, indent string, embedded bool, _ []string) (string, error) {
 	var builder strings.Builder
 
 	if !embedded {
-		//builder.WriteString("\n")
 		if len(t.path) > 0 {
 			if t.inArray {
 				builder.WriteString(fmt.Sprintf("[[%s]]\n", t.path))
@@ -45,25 +43,15 @@ func (t *Toml) RenderStruct(info *distiller.StructInfo, defaults interface{}, in
 		}
 	}
 
-	sorted := t.sortFields(info.Fields)
-
-	var shadowing []string
-	for _, field := range sorted {
-		if !field.IsEmbedded {
-			shadowing = append(shadowing, field.Name)
-		}
+	sorted, sortedDefaults, err := t.sortFields(info.Fields, defaults)
+	if err != nil {
+		return "", err
 	}
 
 	newline := ""
 
-	for i, field := range sorted {
+	for _, field := range sorted {
 		name := field.Name
-
-		// This field will be shadowed by another one, so skip it.
-		if (!field.IsEmbedded && lastIndexOf(shadowing, name) > i) ||
-			(embedded && lastIndexOf(parentShadowing, name) != -1) {
-			continue
-		}
 
 		builder.WriteString(newline)
 
@@ -71,18 +59,10 @@ func (t *Toml) RenderStruct(info *distiller.StructInfo, defaults interface{}, in
 			name = t.renderKey(jsonName)
 		}
 
-		key := field.Name
-		if field.IsEmbedded {
-			key = field.Type.String()
-			if pathEnd := strings.LastIndex(key, "/"); pathEnd >= 0 {
-				key = key[pathEnd+strings.Index(key[pathEnd+1:], ".")+2:]
-			}
-		}
-
 		var value interface{}
 		ok := false
-		if defaults != nil {
-			value, ok = defaults.(map[string]interface{})[key]
+		if sortedDefaults != nil {
+			value, ok = sortedDefaults[field.Name]
 		}
 
 		consts := distiller.LookupTypedConsts(field.Type.String())
@@ -111,7 +91,6 @@ func (t *Toml) RenderStruct(info *distiller.StructInfo, defaults interface{}, in
 				value = typeZero(field)
 			}
 		} else {
-			var err error
 			switch field.Layout {
 			case distiller.LayoutSingle:
 				if isNamed && consts == nil {
@@ -120,7 +99,7 @@ func (t *Toml) RenderStruct(info *distiller.StructInfo, defaults interface{}, in
 						return "", fmt.Errorf("cannot lookup structure %s", field.Type.String())
 					}
 
-					value, err = t.RenderStruct(subInfo, value, fieldIndent, field.IsEmbedded, shadowing[i:])
+					value, err = t.RenderStruct(subInfo, value, fieldIndent, field.IsEmbedded, nil)
 
 					if err != nil {
 						return "", err
@@ -262,16 +241,57 @@ func (t *Toml) RenderElement(itemType types.Type, item interface{}, indent strin
 	return t.RenderStruct(subInfo, item, indent, false, nil)
 }
 
-// sortFields sorts the fields by putting those that have native types or that are
-// slices or arrays of native types first.
-func (t *Toml) sortFields(fields []*distiller.FieldInfo) []*distiller.FieldInfo {
-	sorted := make([]*distiller.FieldInfo, len(fields))
-	copy(sorted, fields)
+// sortFields sorts the fields by putting those that have basic types or that are
+// slices or arrays of basic types first, taking shadowing and embedding into account.
+// It also returns the defaults to simplify access in case of embedding.
+func (t *Toml) sortFields(fields []*distiller.FieldInfo, defaults interface{}) ([]*distiller.FieldInfo, map[string]interface{}, error) {
+	var sorted []*distiller.FieldInfo
+	fieldsDefaults := make(map[string]interface{})
+
+	for _, field := range fields {
+		if !field.IsEmbedded {
+			if i := fieldsSlice(sorted).indexOf(field.Name); i != -1 {
+				sorted = append(sorted[0:i], sorted[i+1:]...)
+			}
+			sorted = append(sorted, field)
+			if value, ok := defaults.(map[string]interface{})[field.Name]; ok {
+				fieldsDefaults[field.Name] = value
+			}
+			continue
+		}
+
+		key := field.Type.String()
+		if pathEnd := strings.LastIndex(key, "/"); pathEnd >= 0 {
+			key = key[pathEnd+strings.Index(key[pathEnd+1:], ".")+2:]
+		}
+
+		subInfo := distiller.LookupStruct(field.Type.String())
+		if subInfo == nil {
+			return nil, nil, fmt.Errorf("cannot lookup structure %s", field.Type.String())
+		}
+
+		subFields, subDefaults, err := t.sortFields(subInfo.Fields, defaults.(map[string]interface{})[key])
+		if err != nil {
+			return nil, nil, err
+		}
+
+		for _, subField := range subFields {
+			if i := fieldsSlice(sorted).indexOf(subField.Name); i != -1 {
+				sorted = append(sorted[0:i], sorted[i+1:]...)
+			}
+			sorted = append(sorted, subField)
+
+			if value, ok := subDefaults[subField.Name]; ok {
+				fieldsDefaults[subField.Name] = value
+			}
+		}
+	}
+
 	sort.SliceStable(sorted, func(i, j int) bool {
 		return t.isSimpleField(sorted[i]) && !t.isSimpleField(sorted[j])
 	})
 
-	return sorted
+	return sorted, fieldsDefaults, nil
 }
 
 // isSimpleField verifies that a field is simple, i.e. that it is of native type or an array or slice of native types.

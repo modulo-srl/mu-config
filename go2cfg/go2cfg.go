@@ -11,7 +11,7 @@ import (
 	"github.com/modulo-srl/mu-config/go2cfg/renderers"
 )
 
-const version = "1.0.5"
+const version = "1.0.6"
 
 func main() {
 	flag.Usage = usage
@@ -107,6 +107,11 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
+
+		err = generateYamlFile(dir, *typeName, *output+".yaml", docMode)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 }
 
@@ -160,4 +165,15 @@ func generateToml(dir, typeName string, docMode renderers.DocTypesMode) (string,
 	}
 
 	return output, nil
+}
+
+func generateYamlFile(dir, typeName, filename string, docMode renderers.DocTypesMode) error {
+	output := "- YAML non ancora supportato -"
+
+	err := os.WriteFile(filename, []byte(output), 0666)
+	if err != nil {
+		return fmt.Errorf("generating YAML file: %s", err)
+	}
+
+	return nil
 }

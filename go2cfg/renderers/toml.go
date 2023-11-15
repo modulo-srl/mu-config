@@ -254,8 +254,10 @@ func (t *Toml) sortFields(fields []*distiller.FieldInfo, defaults interface{}) (
 				sorted = append(sorted[0:i], sorted[i+1:]...)
 			}
 			sorted = append(sorted, field)
-			if value, ok := defaults.(map[string]interface{})[field.Name]; ok {
-				fieldsDefaults[field.Name] = value
+			if defaults != nil {
+				if value, ok := defaults.(map[string]interface{})[field.Name]; ok {
+					fieldsDefaults[field.Name] = value
+				}
 			}
 			continue
 		}
@@ -270,7 +272,11 @@ func (t *Toml) sortFields(fields []*distiller.FieldInfo, defaults interface{}) (
 			return nil, nil, fmt.Errorf("cannot lookup structure %s", field.Type.String())
 		}
 
-		subFields, subDefaults, err := t.sortFields(subInfo.Fields, defaults.(map[string]interface{})[key])
+		var defaultsMap interface{}
+		if defaults != nil {
+			defaultsMap = defaults.(map[string]interface{})[key]
+		}
+		subFields, subDefaults, err := t.sortFields(subInfo.Fields, defaultsMap)
 		if err != nil {
 			return nil, nil, err
 		}

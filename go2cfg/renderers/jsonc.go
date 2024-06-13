@@ -1,6 +1,7 @@
 package renderers
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/modulo-srl/mu-config/go2cfg/distiller"
 	"github.com/modulo-srl/mu-config/go2cfg/ordered"
@@ -93,6 +94,16 @@ func (j *Jsonc) RenderStruct(info *distiller.StructInfo, defaults interface{}, i
 						return "", err
 					}
 				} else {
+					basicT, ok := field.Type.(*types.Basic)
+					if ok && basicT.Kind() == types.String {
+						var b []byte
+						b, err = json.Marshal(unescapeString(value))
+						if err != nil {
+							return "", err
+						}
+						value = string(b)
+					}
+
 					// No special handling required for basic types.
 					renderType = renderType || (j.docTypesMode == BasicFields)
 				}

@@ -1,1 +1,25 @@
-- YAML non ancora supportato -
+# Main configuration parameters.
+Main:
+  ParamSub:
+    ParamMap:
+      'key 1': '/path/to/file'
+      key2: 'c:\path\to\file'
+    ParamArray:
+      - 1
+      - 2
+      - 3
+  ParamString: "ParamValue \n \"test\" \U0001F60A 世界"
+  ParamBool: true
+  ParamInt: 12
+  # Float value, default 1.234
+  ParamFloat: 1.234
+# Users list.
+Users:
+  # User name.
+  - Name: 'John'
+    # User e-mail.
+    Email: 'john@email'
+  # User name.
+  - Name: 'Smith'
+    # User e-mail.
+    Email: ''

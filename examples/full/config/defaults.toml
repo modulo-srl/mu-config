@@ -1,13 +1,17 @@
 # Main configuration parameters.
 [Main]
-ParamString = "ParamValue \n \"test\" \U0001f60a \u4e16\u754c"
+ParamString = "ParamValue \n \"test\" 😊 世界"
 ParamBool = true
 ParamInt = 12
 # Float value, default 1.234
 ParamFloat = 1.234
 
 	[Main.ParamSub]
-	ParamArray = [1, 2, 3]
+	ParamArray = [
+		1,
+		2,
+		3
+	]
 
 		[Main.ParamSub.ParamMap]
 		'key 1' = '/path/to/file'
@@ -25,5 +29,5 @@ Email = 'john@email'
 # User name.
 Name = 'Smith'
 # User e-mail.
-Email = ""
+Email = ''
 

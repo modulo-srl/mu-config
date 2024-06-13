@@ -94,8 +94,10 @@ func main() {
 		}
 
 	case ".yaml":
-		// TODO
-		log.Fatal("yaml ancora non supportato")
+		err = generateYamlFile(dir, *typeName, *output, docMode)
+		if err != nil {
+			log.Fatal(err)
+		}
 
 	default:
 		err = generateJsoncFile(dir, *typeName, *output+".jsonc", docMode)
@@ -168,9 +170,13 @@ func generateToml(dir, typeName string, docMode renderers.DocTypesMode) (string,
 }
 
 func generateYamlFile(dir, typeName, filename string, docMode renderers.DocTypesMode) error {
-	output := "- YAML non ancora supportato -"
+	renderer := renderers.NewYaml(docMode, 2)
+	output, err := generator.Generate(dir, typeName, renderer)
+	if err != nil {
+		return err
+	}
 
-	err := os.WriteFile(filename, []byte(output), 0666)
+	err = os.WriteFile(filename, []byte(output), 0666)
 	if err != nil {
 		return fmt.Errorf("generating YAML file: %s", err)
 	}

@@ -1,10 +1,10 @@
 package renderers
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/modulo-srl/mu-config/go2cfg/distiller"
 	"github.com/modulo-srl/mu-config/go2cfg/ordered"
+	"github.com/pelletier/go-toml/v2"
 	"go/types"
 	"regexp"
 	"sort"
@@ -195,7 +195,7 @@ func (t *Toml) RenderArray(field *distiller.FieldInfo, value []interface{}, inde
 	t.inArray = false
 
 	if simple {
-		code = strings.TrimSuffix(code, separator) + "\n]"
+		code = strings.TrimSuffix(code, separator) + "\n" + indent + "]"
 	}
 
 	return code, nil
@@ -339,22 +339,6 @@ func (t *Toml) renderKey(key string) string {
 
 // renderString renders a TOML string with the simpler format allowed by the content.
 func (t *Toml) renderString(v interface{}) (string, error) {
-	s := fmt.Sprintf("%v", v)
-
-	err := json.Unmarshal([]byte(s), &s)
-	if err != nil {
-		return "", err
-	}
-
-	var needQuotes bool
-	needQuotes, err = regexp.MatchString(`[\t\n\r"']+`, s)
-	if err != nil {
-		return "", err
-	}
-
-	if needQuotes {
-		return fmt.Sprintf("%+q", s), nil
-	}
-
-	return "'" + s + "'", nil
+	p, err := toml.Marshal(unescapeString(v))
+	return string(p), err
 }

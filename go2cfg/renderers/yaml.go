@@ -1,11 +1,11 @@
 package renderers
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/modulo-srl/mu-config/go2cfg/distiller"
 	"github.com/modulo-srl/mu-config/go2cfg/ordered"
 	"go/types"
+	"gopkg.in/yaml.v3"
 	"regexp"
 	"strings"
 )
@@ -13,7 +13,6 @@ import (
 // Yaml renders Yaml code from distiller info.
 type Yaml struct {
 	docTypesMode DocTypesMode
-	path         string
 	inArray      bool
 	indent       string
 }
@@ -78,11 +77,6 @@ func (y *Yaml) RenderStruct(info *distiller.StructInfo, defaults interface{}, in
 		simple := y.isSimpleField(field)
 
 		fieldIndent := indent
-
-		parent := y.path
-		if len(y.path) > 0 {
-			y.path += "."
-		}
 
 		// No default defined for this field, if named (struct) or array will be rendered below.
 		_, isNamed := field.Type.(*types.Named)
@@ -173,8 +167,6 @@ func (y *Yaml) RenderStruct(info *distiller.StructInfo, defaults interface{}, in
 				builder.WriteString(fmt.Sprintf("%s%s:\n%v", fieldIndent, name, value))
 			}
 		}
-
-		y.path = parent
 
 		newline = "\n"
 	}
@@ -295,22 +287,11 @@ func (y *Yaml) renderKey(key string) string {
 
 // renderString renders a Yaml string with the simpler format allowed by the content.
 func (y *Yaml) renderString(v interface{}) (string, error) {
-	s := fmt.Sprintf("%v", v)
+	n := yaml.Node{}
+	n.SetString(unescapeString(v))
+	n.Style = yaml.SingleQuotedStyle
+	p, err := yaml.Marshal(n)
 
-	err := json.Unmarshal([]byte(s), &s)
-	if err != nil {
-		return "", err
-	}
-
-	var needQuotes bool
-	needQuotes, err = regexp.MatchString(`[\t\n\r"']+`, s)
-	if err != nil {
-		return "", err
-	}
-
-	if needQuotes {
-		return fmt.Sprintf("%+q", s), nil
-	}
-
-	return "'" + s + "'", nil
+	// removes the terminating \n
+	return string(p[0 : len(p)-1]), err
 }

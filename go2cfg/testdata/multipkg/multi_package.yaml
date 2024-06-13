@@ -1,0 +1,17 @@
+# Network status.
+NetStatus:
+  # Connected flag comment.
+  Connected: true
+  # Connection state comment.
+  # Allowed values:
+  # StateDisconnected = 0  StateDisconnected signals the Disconnected state.
+  # StateConnecting   = 1  StateConnecting signals the connection-pending state.
+  # StateConnected    = 2  StateConnected signals the Connected state.
+  # StateFailed       = 5  StateFailed signals the Failed state.
+  # StateReconnecting = 6  StateReconnecting signals the Reconnecting state.
+  State: 0
+# PacketLoss documentation block.
+# Packet loss comment.
+packet_loss: 64
+# Round-trip time in milliseconds.
+round_trip_time: 123

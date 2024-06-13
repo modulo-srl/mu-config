@@ -2,14 +2,18 @@
 # User name comment.
 Name = 'John'
 # string - User surname comment.
-Surname = ""
+Surname = ''
 # int - Age documentation block.
 # User age.
 age = 30
 # int - Number of stars achieved.
 stars_count = 5
 # []string - Addresses comment.
-Addresses = ['Address 1', 'Address 2', 'Address 3']
+Addresses = [
+	'Address 1',
+	'Address 2',
+	'Address 3'
+]
 # testdata.ConstType - Type documentation block.
 # Type of constant.
 # Allowed values:

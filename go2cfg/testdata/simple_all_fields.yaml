@@ -1,20 +1,24 @@
 # string - Name of the user documentation block.
 # User name comment.
-Name = 'John'
-# User surname comment.
-Surname = ''
+Name: 'John'
+# string - User surname comment.
+Surname: ''
 # int - Age documentation block.
 # User age.
-age = 30
+age: 30
 # int - Number of stars achieved.
-stars_count = 5
-# Addresses comment.
-Addresses = [
-	'Address 1',
-	'Address 2',
-	'Address 3'
-]
-# Type documentation block.
+stars_count: 5
+# []string - Addresses comment.
+Addresses:
+  - 'Address 1'
+  - 'Address 2'
+  - 'Address 3'
+# map[string]string - User tags.
+Tags:
+  Key1: 'Value1'
+  Key2: 'Value2'
+  Key3: 'Value3'
+# testdata.ConstType - Type documentation block.
 # Type of constant.
 # Allowed values:
 # ConstTypeA =   0  ConstTypeA doc block. ConstTypeA comment.
@@ -23,10 +27,4 @@ Addresses = [
 # ConstTypeD =  32  ConstTypeD doc block.
 # ConstTypeE =  64  ConstTypeE doc block. ConstTypeE comment.
 # ConstTypeF = 128  ConstTypeF doc block. ConstTypeF comment.
-Type = 0
-
-# User tags.
-[Tags]
-Key1 = 'Value1'
-Key2 = 'Value2'
-Key3 = 'Value3'
+Type: 0

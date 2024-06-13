@@ -48,6 +48,23 @@ func TestGenerator(t *testing.T) {
 		{"../testdata", "Nesting", "../testdata/nesting_all_fields.toml", renderers.AllFields},
 		{"../testdata", "Simple", "../testdata/simple_all_fields.toml", renderers.AllFields},
 		{"../testdata/multipkg", "MultiPackage", "../testdata/multipkg/multi_package_all_fields.toml", renderers.AllFields},
+
+		// yaml
+		{"../testdata", "Embedding", "../testdata/embedding.yaml", renderers.NoFields},
+		{"../testdata", "Empty", "../testdata/empty.yaml", renderers.NoFields},
+		{"../testdata", "Nesting", "../testdata/nesting.yaml", renderers.NoFields},
+		{"../testdata", "Simple", "../testdata/simple.yaml", renderers.NoFields},
+		{"../testdata/multipkg", "MultiPackage", "../testdata/multipkg/multi_package.yaml", renderers.NoFields},
+
+		{"../testdata", "Embedding", "../testdata/embedding_basic_fields.yaml", renderers.BasicFields},
+		{"../testdata", "Nesting", "../testdata/nesting_basic_fields.yaml", renderers.BasicFields},
+		{"../testdata", "Simple", "../testdata/simple_basic_fields.yaml", renderers.BasicFields},
+		{"../testdata/multipkg", "MultiPackage", "../testdata/multipkg/multi_package_basic_fields.yaml", renderers.BasicFields},
+
+		{"../testdata", "Embedding", "../testdata/embedding_all_fields.yaml", renderers.AllFields},
+		{"../testdata", "Nesting", "../testdata/nesting_all_fields.yaml", renderers.AllFields},
+		{"../testdata", "Simple", "../testdata/simple_all_fields.yaml", renderers.AllFields},
+		{"../testdata/multipkg", "MultiPackage", "../testdata/multipkg/multi_package_all_fields.yaml", renderers.AllFields},
 	}
 
 	whitespacesReplacer := strings.NewReplacer(" ", "◦", "\t", "———➞", "\n", "⏎\n")
@@ -60,6 +77,9 @@ func TestGenerator(t *testing.T) {
 
 			case ".toml":
 				renderer = renderers.NewToml(test.mode, true)
+
+			case ".yaml":
+				renderer = renderers.NewYaml(test.mode, 2)
 
 			default:
 				t.Fatalf("unsupported file format: %s", test.filename)
@@ -90,6 +110,7 @@ func TestGenerator(t *testing.T) {
 	rr := []renderers.Interface{
 		renderers.NewJsonc(renderers.AllFields),
 		renderers.NewToml(renderers.AllFields, true),
+		renderers.NewYaml(renderers.AllFields, 2),
 	}
 
 	for _, r := range rr {

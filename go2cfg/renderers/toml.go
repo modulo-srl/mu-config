@@ -89,6 +89,14 @@ func (t *Toml) RenderStruct(info *distiller.StructInfo, defaults interface{}, in
 				value = consts[0].Value
 			} else {
 				value = typeZero(field)
+				var basicT *types.Basic
+				basicT, ok = field.Type.(*types.Basic)
+				if ok && basicT.Kind() == types.String {
+					value, err = t.renderString(value)
+					if err != nil {
+						return "", err
+					}
+				}
 			}
 		} else {
 			switch field.Layout {
@@ -170,9 +178,9 @@ func (t *Toml) RenderArray(field *distiller.FieldInfo, value []interface{}, inde
 	separator := "\n\n"
 	eltsIndent := indent
 	if simple {
-		code = "["
-		separator = ", "
-		eltsIndent = ""
+		code = "[\n"
+		separator = ",\n"
+		eltsIndent += "\t"
 	}
 
 	t.inArray = true
@@ -187,7 +195,7 @@ func (t *Toml) RenderArray(field *distiller.FieldInfo, value []interface{}, inde
 	t.inArray = false
 
 	if simple {
-		code = strings.TrimSuffix(code, separator) + "]"
+		code = strings.TrimSuffix(code, separator) + "\n]"
 	}
 
 	return code, nil

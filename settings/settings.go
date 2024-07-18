@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 
@@ -57,7 +56,7 @@ func LoadSystemdCredentials(filename string, cfg interface{}, errorWhenNotFound 
 		filename = strings.TrimSuffix(filename, ext)
 	}
 
-	fullpathFile := path + "/" + filename
+	fullpathFile := filepath.Join(path, filename)
 
 	return loadFile(fullpathFile, cfg, errorWhenNotFound)
 }
@@ -174,31 +173,28 @@ func SaveFile(filename string, cfg interface{}, defaults interface{}) error {
 //   - filename: se non ha percorso o lo ha relativo, sarà rispetto alla directory corrente;
 //     se ha percorso assoluto può anche iniziare per '~'.
 func GetFileFullPath(filename string) (string, error) {
-	var fullpath string
-
-	switch filename[0] {
-	case '/':
+	if filepath.IsAbs(filename) {
 		// Percorso assoluto.
-		fullpath = filename
+		return filename, nil
+	}
 
-	case '~':
+	if filename[0] == '~' {
 		// Percorso assoluto alla home.
 		homeDir, err := homedir.Dir()
 		if err != nil {
-			return "", errors.New("can't find homedir: " + err.Error())
+			return "", fmt.Errorf("can't find homedir: %w", err)
 		}
-		fullpath = path.Join(homeDir, filename[1:])
 
-	default:
-		// Percorso relativo: prefissa con la directory corrente.
-		currDir, err := os.Getwd()
-		if err != nil {
-			return "", err
-		}
-		fullpath = path.Join(currDir, filename)
+		return filepath.Join(homeDir, filename[1:]), nil
 	}
 
-	return fullpath, nil
+	// Percorso relativo: prefissa con la directory corrente.
+	currDir, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+
+	return filepath.Join(currDir, filename), nil
 }
 
 func fileExists(filename string) bool {

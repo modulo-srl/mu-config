@@ -108,11 +108,11 @@ func loadFile(filename string, cfg interface{}, errorWhenNotFound bool) (loadedF
 	case ".json":
 		fallthrough
 	case ".jsonc":
-		err = parsers.LoadJsoncFile(filename, &cfg)
+		err = parsers.LoadJsoncFile(filename, cfg)
 	case ".yaml":
-		err = parsers.LoadYamlFile(filename, &cfg)
+		err = parsers.LoadYamlFile(filename, cfg)
 	case ".toml":
-		err = parsers.LoadTomlFile(filename, &cfg)
+		err = parsers.LoadTomlFile(filename, cfg)
 	}
 
 	if err != nil {

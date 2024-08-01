@@ -29,7 +29,7 @@ func GetDefaultConfig(format string) string {
 
 // Carica la configurazione da file.
 func Load(filename string) error {
-	loadedFilename, err := settings.LoadFile(filename, &Cfg, true)
+	loadedFilename, err := settings.LoadFile(filename, Cfg, true)
 	if err != nil {
 		return err
 	}
@@ -37,7 +37,7 @@ func Load(filename string) error {
 
 	// Carica la configurazione da systemd, per qualsiasi formato.
 	systemdFilename := filepath.Base(filename)
-	loadedFilename, err = settings.LoadSystemdCredentials(systemdFilename, &Cfg, false)
+	loadedFilename, err = settings.LoadSystemdCredentials(systemdFilename, Cfg, false)
 	if err != nil {
 		return err
 	}

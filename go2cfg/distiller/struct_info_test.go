@@ -85,7 +85,7 @@ func TestStructInfo(t *testing.T) {
 			Package:     "github.com/modulo-srl/mu-config/go2cfg/testdata",
 			Name:        "Simple",
 			Doc:         "Simple defines a simple user.\n",
-			FieldsCount: 7,
+			FieldsCount: 9,
 			Defaults:    nil,
 		},
 	})
@@ -120,6 +120,8 @@ func TestStructInfoDefaults(t *testing.T) {
 			constant.MakeString("Address 3"),
 		},
 		"Tags": tags,
+		"X":    constant.MakeFloat64(1.0),
+		"Y":    constant.MakeFloat64(2.0),
 	})
 }
 

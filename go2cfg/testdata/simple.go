@@ -20,6 +20,9 @@ type Simple struct {
 
 	// Type documentation block.
 	Type ConstType // Type of constant.
+
+	// X, Y documentation block.
+	X, Y float64 // Coordinates.
 }
 
 func SimpleDefaults() *Simple {
@@ -37,5 +40,7 @@ func SimpleDefaults() *Simple {
 			"Key2": "Value2",
 			"Key3": "Value3",
 		},
+		X: 1.0,
+		Y: 2.0,
 	}
 }

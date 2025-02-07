@@ -232,6 +232,22 @@ IsEmbedded: false
 Tags: map[]
 Doc: "Type documentation block.\nType of constant.\n"
 `,
+		`Type: float64
+Name: "X"
+Layout: 0
+Element type: <nil>
+IsEmbedded: false
+Tags: map[]
+Doc: "X, Y documentation block.\nCoordinates.\n"
+`,
+		`Type: float64
+Name: "Y"
+Layout: 0
+Element type: <nil>
+IsEmbedded: false
+Tags: map[]
+Doc: "X, Y documentation block.\nCoordinates.\n"
+`,
 	}
 
 	whitespacesReplacer := strings.NewReplacer(" ", "◦", "\t", "———➞", "\n", "⏎\n")
@@ -408,6 +424,18 @@ func TestFieldInfo(t *testing.T) {
 			Layout: LayoutSingle, IsEmbedded: false,
 			Tags: nil,
 			Doc:  "Type documentation block.\nType of constant.\n",
+		},
+		{
+			Type: "float64", Name: "X",
+			Layout: LayoutSingle, IsEmbedded: false,
+			Tags: nil,
+			Doc:  "X, Y documentation block.\nCoordinates.\n",
+		},
+		{
+			Type: "float64", Name: "Y",
+			Layout: LayoutSingle, IsEmbedded: false,
+			Tags: nil,
+			Doc:  "X, Y documentation block.\nCoordinates.\n",
 		},
 	})
 }

@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"go/ast"
 	"go/types"
-	"golang.org/x/tools/go/packages"
-	"log"
 	"regexp"
 	"strings"
+
+	"golang.org/x/tools/go/packages"
 )
 
 type FieldLayout int
@@ -34,16 +34,9 @@ var tagRegexp = regexp.MustCompile(`(\w+):"((?:[^"\\]|\\.)*)"`)
 
 // NewFieldInfo creates new field information object from given abstract syntax tree field and package.
 // Terminates the process with a fatal error if multiple names are specified for the same field.
-func NewFieldInfo(field *ast.Field, pkg *packages.Package) *FieldInfo {
-	f := &FieldInfo{Layout: LayoutSingle, EltType: nil}
-	if len(field.Names) == 1 {
-		f.Name = field.Names[0].Name
-	} else if field.Names == nil {
-		// Embedded field.
-		f.IsEmbedded = true
-	} else {
-		log.Fatalf("Unsupported multiple names.")
-	}
+// Returns nil if the field is not exported.
+func NewFieldInfo(field *ast.Field, pkg *packages.Package) []*FieldInfo {
+	f := FieldInfo{Layout: LayoutSingle, EltType: nil}
 
 	f.Type = pkg.TypesInfo.Types[field.Type].Type
 	switch fieldType := field.Type.(type) {
@@ -73,7 +66,30 @@ func NewFieldInfo(field *ast.Field, pkg *packages.Package) *FieldInfo {
 
 	// Merge documentation and comment.
 	f.Doc = field.Doc.Text() + field.Comment.Text()
-	return f
+
+	if field.Names == nil {
+		// Embedded field.
+		f.IsEmbedded = true
+		return []*FieldInfo{&f}
+	}
+
+	var ff []*FieldInfo
+
+	for _, ident := range field.Names {
+		// Skip non-exported identifier.
+		if ident.Name[0:1] == strings.ToLower(ident.Name[0:1]) {
+			continue
+		}
+
+		// Multiple fields names means multiple fields on same line
+		// with same type and documentation, so everything but name can be copied.
+		x := f
+		x.Name = ident.Name
+
+		ff = append(ff, &x)
+	}
+
+	return ff
 }
 
 func (f *FieldInfo) String() string {

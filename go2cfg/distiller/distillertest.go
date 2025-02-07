@@ -51,7 +51,7 @@ func GetFieldsInfo(t *testing.T, patterns []string) []*FieldInfo {
 						return true
 					}
 
-					fields = append(fields, NewFieldInfo(field, pkg))
+					fields = append(fields, NewFieldInfo(field, pkg)...)
 
 					return true
 				})

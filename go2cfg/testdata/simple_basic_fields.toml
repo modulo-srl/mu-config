@@ -24,6 +24,12 @@ Addresses = [
 # ConstTypeE =  64  ConstTypeE doc block. ConstTypeE comment.
 # ConstTypeF = 128  ConstTypeF doc block. ConstTypeF comment.
 Type = 0
+# float64 - X, Y documentation block.
+# Coordinates.
+X = 1
+# float64 - X, Y documentation block.
+# Coordinates.
+Y = 2
 
 # User tags.
 [Tags]

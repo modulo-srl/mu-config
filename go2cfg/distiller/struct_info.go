@@ -46,8 +46,10 @@ func NewStructInfo(genDecl *ast.GenDecl, pkg *packages.Package) *StructInfo {
 	}
 
 	for _, field := range structType.Fields.List {
-		f := NewFieldInfo(field, info.Package)
-		info.Fields = append(info.Fields, f)
+		ff := NewFieldInfo(field, info.Package)
+		if ff != nil {
+			info.Fields = append(info.Fields, ff...)
+		}
 	}
 
 	return info

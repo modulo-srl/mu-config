@@ -5,10 +5,12 @@ import (
 	"go/ast"
 	"go/token"
 	"go/types"
-	"golang.org/x/tools/go/ast/astutil"
-	"golang.org/x/tools/go/packages"
 	"os"
 	"path/filepath"
+	"strings"
+
+	"golang.org/x/tools/go/ast/astutil"
+	"golang.org/x/tools/go/packages"
 )
 
 // PackageInfo holds information about a package.
@@ -130,7 +132,7 @@ func (p *PackageInfo) readPackage(dir string) error {
 				}
 
 				if len(genDecl.Specs) != 1 {
-					return fmt.Errorf("expected one spec for struct declaration")
+					return fmt.Errorf("expected one spec for struct declaration: %s", typeNameString)
 				}
 
 				var typeSpec *ast.TypeSpec
@@ -142,6 +144,12 @@ func (p *PackageInfo) readPackage(dir string) error {
 
 				// The identifier matches but the type is not a struct, exit loop.
 				if _, ok = typeSpec.Type.(*ast.StructType); !ok {
+					break
+				}
+
+				name := genDecl.Specs[0].(*ast.TypeSpec).Name.Name
+				// The identifier is a struct but is not exported, can be skipped.
+				if name[0:1] == strings.ToLower(name[0:1]) {
 					break
 				}
 

@@ -2,13 +2,15 @@ package renderers
 
 import (
 	"fmt"
-	"github.com/modulo-srl/mu-config/go2cfg/distiller"
-	"github.com/modulo-srl/mu-config/go2cfg/ordered"
-	"github.com/pelletier/go-toml/v2"
 	"go/types"
 	"regexp"
 	"sort"
 	"strings"
+
+	"github.com/pelletier/go-toml/v2"
+
+	"github.com/modulo-srl/mu-config/go2cfg/distiller"
+	"github.com/modulo-srl/mu-config/go2cfg/ordered"
 )
 
 // Toml renders Toml code from distiller info.
@@ -16,6 +18,7 @@ type Toml struct {
 	docTypesMode DocTypesMode
 	path         string
 	inArray      bool
+	inMap        bool
 	indented     bool
 }
 
@@ -26,6 +29,7 @@ func NewToml(mode DocTypesMode, indented bool) *Toml {
 		docTypesMode: mode,
 		path:         "",
 		inArray:      false,
+		inMap:        false,
 		indented:     indented,
 	}
 }
@@ -214,16 +218,31 @@ func (t *Toml) RenderMap(field *distiller.FieldInfo, value *ordered.Map, indent 
 	code := ""
 
 	var err error
+	t.inMap = true
 	value.Iterate(func(key string, elt interface{}) bool {
 		var literal string
+
+		rk := t.renderKey(key)
+		_, complexEl := field.EltType.(*types.Named)
+		if complexEl {
+			t.path += "." + rk
+		}
+
 		literal, err = t.RenderElement(field.EltType, elt, eltsIndent)
 		if err != nil {
 			return false
 		}
 
-		code += eltsIndent + fmt.Sprintf("%s = %s", t.renderKey(key), literal) + "\n"
+		if complexEl {
+			code += eltsIndent + literal + "\n"
+			t.path = t.path[0 : len(t.path)-len(rk)-1]
+		} else {
+			code += eltsIndent + fmt.Sprintf("%s = %s", rk, literal) + "\n"
+		}
+
 		return true
 	})
+	t.inMap = false
 
 	if err != nil {
 		return "", err
@@ -323,6 +342,12 @@ func (t *Toml) isSimpleField(field *distiller.FieldInfo) bool {
 	}
 
 	return false
+}
+
+// isSimpleType verifies that a type is simple, i.e. that it is of native type, not arrays/slices or maps.
+func (t *Toml) isSimpleType(typ types.Type) bool {
+	_, ok := typ.(*types.Basic)
+	return ok || distiller.LookupTypedConsts(typ.String()) != nil
 }
 
 // renderKey renders a TOML key surrounding it with quotes when needed.

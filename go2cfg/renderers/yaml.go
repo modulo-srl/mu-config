@@ -2,12 +2,14 @@ package renderers
 
 import (
 	"fmt"
-	"github.com/modulo-srl/mu-config/go2cfg/distiller"
-	"github.com/modulo-srl/mu-config/go2cfg/ordered"
 	"go/types"
-	"gopkg.in/yaml.v3"
 	"regexp"
 	"strings"
+
+	"gopkg.in/yaml.v3"
+
+	"github.com/modulo-srl/mu-config/go2cfg/distiller"
+	"github.com/modulo-srl/mu-config/go2cfg/ordered"
 )
 
 // Yaml renders Yaml code from distiller info.
@@ -222,12 +224,23 @@ func (y *Yaml) RenderMap(field *distiller.FieldInfo, value *ordered.Map, indent 
 	var err error
 	value.Iterate(func(key string, elt interface{}) bool {
 		var literal string
+		simple := y.isSimpleType(field.EltType)
+		if !simple {
+			eltsIndent += y.indent
+		}
+
 		literal, err = y.RenderElement(field.EltType, elt, eltsIndent)
 		if err != nil {
 			return false
 		}
 
-		code += eltsIndent + fmt.Sprintf("%s: %s", y.renderKey(key), literal) + "\n"
+		if !simple {
+			eltsIndent = eltsIndent[0 : len(eltsIndent)-len(y.indent)]
+			code += eltsIndent + fmt.Sprintf("%s:\n%s", y.renderKey(key), literal) + "\n"
+		} else {
+			code += eltsIndent + fmt.Sprintf("%s: %s", y.renderKey(key), literal) + "\n"
+		}
+
 		return true
 	})
 

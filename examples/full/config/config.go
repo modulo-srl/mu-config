@@ -29,21 +29,22 @@ func GetDefaultConfig(format string) string {
 
 // Carica la configurazione da file.
 func Load(filename string) error {
-	loadedFilename, err := settings.LoadFile(filename, Cfg, true)
-	if err != nil {
-		return err
-	}
-	fmt.Println("settings loaded from: " + loadedFilename)
-
 	// Carica la configurazione da systemd, per qualsiasi formato.
 	systemdFilename := filepath.Base(filename)
-	loadedFilename, err = settings.LoadSystemdCredentials(systemdFilename, Cfg, false)
+	loadedFilename, err := settings.LoadSystemdCredentials(systemdFilename, Cfg, false)
 	if err != nil {
 		return err
 	}
 	if loadedFilename != "" {
 		fmt.Println("systemd settings loaded from: " + loadedFilename)
+		return nil
 	}
 
-	return err
+	loadedFilename, err = settings.LoadFile(filename, Cfg, true)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("settings loaded from: " + loadedFilename)
+	return nil
 }

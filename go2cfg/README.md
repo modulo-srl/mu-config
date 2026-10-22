@@ -40,7 +40,7 @@ import (
     alias "github.com/modulo-srl/mu-config/go2cfg/testdata/multipkg/stats"
 )
 
-//go:generate go2cfg -type MultiPackage -out multi_package.jsonc
+//go:generate go run github.com/modulo-srl/mu-config/go2cfg@latest -type MultiPackage -out multi_package.jsonc
 
 // MultiPackage tests the multi-package and import aliasing case.
 type MultiPackage struct {
@@ -158,7 +158,7 @@ Valori permessi per `-doc-types`:
 Aggiungere il commento speciale `go:generate` dove desiderato:
 
 ```go
-//go:generate go2cfg -type type-name [-doc-types doc] -out outfile.ext [package-dir]
+//go:generate go run github.com/modulo-srl/mu-config/go2cfg@latest -type type-name [-doc-types doc] -out outfile.ext [package-dir]
 ```
 
 `package-dir` può essere tranquillamente omesso in questo caso,
